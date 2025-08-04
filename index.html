@@ -750,12 +750,13 @@
                     document.getElementById('trigger-streaming-view-button').addEventListener('click', async () => {
                         updateState({ currentView: 'streaming' });
                         streamingPageTitle.textContent = `Streaming: ${details.title || details.name}`;
-                        streamingPlayerInline.src = `https://vidsrc.me/embed/${state.currentMediaId}`;
+                        // Hapus pemanggilan streamingPlayerInline.src di sini
+                        // streamingPlayerInline.src = `https://vidsrc.me/embed/${state.currentMediaId}`; // Dihapus
 
                         // Memuat film-film serupa (genre romantis) di dalam bagian inline
                         // Menggunakan genre yang relevan dengan film yang sedang ditonton, atau fallback ke romantis jika tidak ada
-                        const primaryGenreId = details.genres && details.genres.length > 0 ? details.genres[0].id : 10749; // Default to Romance
-                        const similarInlineMovies = await fetchByGenre(type, primaryGenreId, 1);
+                        const romanceGenreId = 10749; // ID untuk genre Romance
+                        const similarInlineMovies = await fetchByGenre(type, romanceGenreId, 1); // Selalu ambil Romance
                         if (similarInlineMovies && similarInlineMovies.length > 0) {
                             renderSimpleCards(similarInlineMovies.slice(0, 12), inlineSimilarContainer);
                         } else {

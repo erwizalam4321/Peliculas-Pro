@@ -137,23 +137,98 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const apiKey = 'tmdb-api-proxy.argoyuwono119.workers.dev';
+            // #############################################
+            // PENYIMPANAN KONFIGURASI API KEY
+            // #############################################
+            // Daftar API key/proxy yang dapat digunakan. Aplikasi akan mencoba yang pertama,
+            // dan jika gagal, akan beralih ke yang berikutnya.
+            const apiKeys = [
+                'tmdb-api-proxy.argoyuwono119.workers.dev',
+                'tmdb-api-proxy.musadekakhmad.workers.dev',
+                'tmdb-api-proxy-1.musadekakhmad.workers.dev'
+            ];
+            
+            // #############################################
+            // PENGELOLAAN STATE TERPUSAT (REFAKTOR SEBELUMNYA)
+            // #############################################
+
             const contentArea = document.getElementById('content-area');
             const heroSection = document.getElementById('hero-section');
             const introSection = document.getElementById('intro-section');
             const mainHeading = document.getElementById('main-heading');
             const searchForm = document.getElementById('search-form');
             const searchInput = document.getElementById('search-input');
+            const homeLink = document.getElementById('home-link');
 
-            // Set to keep track of rendered item IDs to prevent duplicates
-            const renderedItemIds = new Set();
+            const state = {
+                currentPage: 1,
+                renderedItemIds: new Set(),
+                currentView: 'home', // 'home', 'list', 'details', 'search'
+                listParams: null, // { fetchType, type, id, title }
+                detailsParams: null, // { type, id }
+                searchQuery: null,
+            };
+
+            const updateState = (newState) => {
+                Object.assign(state, newState);
+                render();
+            };
+
+            const render = () => {
+                heroSection.classList.add('hidden');
+                introSection.classList.add('hidden');
+                mainHeading.classList.add('hidden');
+                contentArea.innerHTML = '';
+                
+                state.renderedItemIds.clear();
+
+                switch (state.currentView) {
+                    case 'home':
+                        heroSection.classList.remove('hidden');
+                        introSection.classList.remove('hidden');
+                        mainHeading.classList.remove('hidden');
+                        mainHeading.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-yellow-400 mr-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18 3H6c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 5h12v14H6V5zm10 12h-2v-2h2v2zM8 7h2v2H8V7zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2z"/>
+                            </svg>
+                            Welcome to Peliculas Pro: Your Ultimate Destination for the Best Free Movie Streaming
+                        `;
+                        break;
+                    case 'list':
+                        showDynamicContent(state.listParams.fetchType, state.listParams.type, state.listParams.id, state.listParams.title);
+                        break;
+                    case 'details':
+                        showDetails(state.detailsParams.type, state.detailsParams.id);
+                        break;
+                    case 'search':
+                        showSearchResults(state.searchQuery);
+                        break;
+                }
+            };
             
-            // Function to fetch content from TMDB API
+            // #############################################
+            // FUNGSI UTILITY & API CALLS (DIPERBARUI)
+            // #############################################
+            // Fungsi untuk melakukan fetch, dengan fallback jika API key gagal
+            const safeFetch = async (urlSuffix, options = {}) => {
+                for (const apiKey of apiKeys) {
+                    const url = `https://${apiKey}${urlSuffix}`;
+                    try {
+                        const response = await fetch(url, options);
+                        if (response.ok) {
+                            return response.json();
+                        }
+                    } catch (error) {
+                        console.warn(`Failed to fetch from ${apiKey}. Trying next API key.`, error);
+                    }
+                }
+                throw new Error('All API keys failed to fetch data.');
+            };
+
             const fetchContent = async (type, category, page = 1) => {
-                const url = `https://${apiKey}/${type}/${category}?page=${page}`;
+                const urlSuffix = `/${type}/${category}?page=${page}`;
                 try {
-                    const response = await fetch(url);
-                    const data = await response.json();
+                    const data = await safeFetch(urlSuffix);
                     return data.results;
                 } catch (error) {
                     console.error('Error fetching data:', error);
@@ -161,12 +236,10 @@
                 }
             };
             
-            // Function to fetch content from TMDB API by genre
             const fetchByGenre = async (type, genreId, page = 1) => {
-                const url = `https://${apiKey}/discover/${type}?with_genres=${genreId}&page=${page}`;
+                const urlSuffix = `/discover/${type}?with_genres=${genreId}&page=${page}`;
                 try {
-                    const response = await fetch(url);
-                    const data = await response.json();
+                    const data = await safeFetch(urlSuffix);
                     return data.results;
                 } catch (error) {
                     console.error('Error fetching data by genre:', error);
@@ -174,12 +247,10 @@
                 }
             };
 
-            // Function to fetch search results from TMDB API
             const fetchSearchResults = async (query) => {
-                const url = `https://${apiKey}/search/multi?query=${encodeURIComponent(query)}`;
+                const urlSuffix = `/search/multi?query=${encodeURIComponent(query)}`;
                 try {
-                    const response = await fetch(url);
-                    const data = await response.json();
+                    const data = await safeFetch(urlSuffix);
                     return data.results;
                 } catch (error) {
                     console.error('Error fetching search results:', error);
@@ -187,16 +258,14 @@
                 }
             };
 
-            // Function to render movie/TV show cards
             const renderCards = (items, container) => {
                 items.forEach(item => {
                     const mediaType = item.media_type || (item.title ? 'movie' : 'tv');
 
-                    // Check if the item has already been rendered or if it's not a movie or tv show
-                    if (renderedItemIds.has(item.id) || (mediaType !== 'movie' && mediaType !== 'tv')) {
+                    if (state.renderedItemIds.has(item.id) || (mediaType !== 'movie' && mediaType !== 'tv')) {
                         return;
                     }
-                    renderedItemIds.add(item.id);
+                    state.renderedItemIds.add(item.id);
 
                     const title = item.title || item.name;
                     const posterPath = item.poster_path;
@@ -212,7 +281,6 @@
                         </div>
                     `;
 
-                    // Update: Now we change the URL hash instead of calling a function directly
                     card.addEventListener('click', () => {
                         window.location.hash = `details/${mediaType}/${item.id}`;
                     });
@@ -221,46 +289,35 @@
                 });
             };
 
-            // Function to handle showing the dynamic content list (for both category and genre)
             const showDynamicContent = async (fetchType, type, id, title) => {
-                // Clear existing content, hide static sections, and reset rendered items
-                contentArea.innerHTML = '';
-                renderedItemIds.clear(); // Reset the set for new content
-                heroSection.classList.add('hidden');
-                introSection.classList.add('hidden');
-                
-                // Update the main heading
                 mainHeading.innerHTML = `<h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">${title}</h2>`;
                 mainHeading.classList.remove('hidden');
 
-                let currentPage = 1;
                 const itemsContainer = document.createElement('div');
-                // The responsive grid classes: `grid-cols-2` for mobile, `sm:grid-cols-3` for small screens, and `lg:grid-cols-4` for large screens
                 itemsContainer.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6';
                 
-                // Fetch and render initial items
-                let initialItems;
+                let items;
                 if (fetchType === 'category') {
-                    initialItems = await fetchContent(type, id, currentPage);
+                    items = await fetchContent(type, id, state.currentPage);
                 } else if (fetchType === 'genre') {
-                    initialItems = await fetchByGenre(type, id, currentPage);
+                    items = await fetchByGenre(type, id, state.currentPage);
                 }
 
-                if (initialItems && initialItems.length > 0) {
+                if (items && items.length > 0) {
                     contentArea.appendChild(itemsContainer);
-                    renderCards(initialItems, itemsContainer);
+                    renderCards(items, itemsContainer);
 
                     const loadMoreButton = document.createElement('button');
                     loadMoreButton.className = 'mt-8 mx-auto block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform duration-300 transform hover:scale-105';
                     loadMoreButton.textContent = 'Load More';
                     
                     loadMoreButton.addEventListener('click', async () => {
-                        currentPage++;
+                        updateState({ currentPage: state.currentPage + 1 });
                         let moreItems;
                         if (fetchType === 'category') {
-                            moreItems = await fetchContent(type, id, currentPage);
+                            moreItems = await fetchContent(type, id, state.currentPage);
                         } else if (fetchType === 'genre') {
-                            moreItems = await fetchByGenre(type, id, currentPage);
+                            moreItems = await fetchByGenre(type, id, state.currentPage);
                         }
 
                         if (moreItems && moreItems.length > 0) {
@@ -277,13 +334,7 @@
                 }
             };
             
-            // Function to display search results
             const showSearchResults = async (query) => {
-                contentArea.innerHTML = '';
-                renderedItemIds.clear();
-                heroSection.classList.add('hidden');
-                introSection.classList.add('hidden');
-
                 mainHeading.innerHTML = `<h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">Search Results for: "${decodeURIComponent(query)}"</h2>`;
                 mainHeading.classList.remove('hidden');
 
@@ -299,13 +350,7 @@
                 }
             };
 
-            // Function to fetch and display movie/TV show details
             const showDetails = async (type, id) => {
-                // Clear existing content and hide main heading
-                contentArea.innerHTML = '';
-                mainHeading.classList.add('hidden');
-
-                // Tampilkan loading spinner
                 const loadingSpinner = document.createElement('div');
                 loadingSpinner.className = 'flex justify-center items-center h-64';
                 loadingSpinner.innerHTML = `
@@ -314,60 +359,39 @@
                 contentArea.appendChild(loadingSpinner);
                 
                 try {
-                    // Membuat array promises untuk semua panggilan API
-                    const promises = [
-                        fetch(`https://${apiKey}/${type}/${id}`),
-                        fetch(`https://${apiKey}/${type}/${id}/videos`),
-                        fetch(`https://${apiKey}/${type}/${id}/credits`),
-                        fetch(`https://${apiKey}/${type}/${id}/similar`),
-                        fetch(`https://${apiKey}/${type}/${id}/reviews`)
-                    ];
-
-                    // Menunggu semua promises selesai secara paralel menggunakan Promise.all
-                    const [detailsResponse, videosResponse, creditsResponse, similarResponse, reviewsResponse] = await Promise.all(promises);
-
-                    // Memproses semua data setelah semua respons diterima
                     const [details, videosData, creditsData, similarData, reviewsData] = await Promise.all([
-                        detailsResponse.json(),
-                        videosResponse.json(),
-                        creditsResponse.json(),
-                        similarResponse.json(),
-                        reviewsResponse.json()
+                        safeFetch(`/${type}/${id}`),
+                        safeFetch(`/${type}/${id}/videos`),
+                        safeFetch(`/${type}/${id}/credits`),
+                        safeFetch(`/${type}/${id}/similar`),
+                        safeFetch(`/${type}/${id}/reviews`)
                     ]);
 
-                    // Hapus loading spinner
                     loadingSpinner.remove();
 
-                    // Display a "Go Back" button
                     const backButton = document.createElement('button');
                     backButton.className = 'bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 mb-6';
                     backButton.innerHTML = '← Back';
-                    // Update: Use browser history instead of reloading the page
                     backButton.addEventListener('click', () => history.back());
                     contentArea.appendChild(backButton);
 
                     const trailer = videosData.results.find(video => video.type === 'Trailer' && video.site === 'YouTube');
                     const director = creditsData.crew.find(member => member.job === 'Director');
-                    const cast = creditsData.cast.slice(0, 5).map(actor => actor.name).join(', '); // Get first 5 actors
-                    const similarItems = similarData.results.slice(0, 6); // Get only 6 similar titles
-                    const reviews = reviewsData.results.slice(0, 5); // Get first 5 reviews
+                    const cast = creditsData.cast.slice(0, 5).map(actor => actor.name).join(', ');
+                    const similarItems = similarData.results.slice(0, 6);
+                    const reviews = reviewsData.results.slice(0, 5);
 
-                    // Build the detail view
                     const detailContainer = document.createElement('div');
-                    // Responsive grid for the details layout
                     detailContainer.className = 'grid grid-cols-1 md:grid-cols-3 gap-8';
 
-                    // Poster and title
                     const posterPath = details.poster_path;
                     const posterUrl = posterPath ? `https://image.tmdb.org/t/p/w500/${posterPath}` : 'https://placehold.co/500x750?text=No+Image';
 
-                    // Check for original title if it's different from the main title
                     const originalTitle = (details.title || details.name) !== details.original_title ? details.original_title : '';
 
                     let genreLinks = '';
                     if (details.genres && details.genres.length > 0) {
                         genreLinks = details.genres.map(g => 
-                            // Update: Genre links now also change the URL hash
                             `<span class="genre-link cursor-pointer text-blue-400 hover:text-blue-200 hover:underline" data-genre-id="${g.id}" data-genre-name="${g.name}">${g.name}</span>`
                         ).join(', ');
                     } else {
@@ -462,7 +486,6 @@
                     
                     contentArea.appendChild(detailContainer);
                     
-                    // Add event listeners to the genre links
                     document.querySelectorAll('.genre-link').forEach(link => {
                         link.addEventListener('click', (e) => {
                             const genreId = e.target.dataset.genreId;
@@ -471,7 +494,6 @@
                         });
                     });
 
-                    // Trailer section
                     if (trailer) {
                         const trailerSection = document.createElement('div');
                         trailerSection.className = 'w-full mt-12 text-center';
@@ -484,7 +506,6 @@
                         contentArea.appendChild(trailerSection);
                     }
 
-                    // Similar movies section
                     if (similarItems.length > 0) {
                         const similarSection = document.createElement('div');
                         similarSection.className = 'mt-12';
@@ -498,7 +519,6 @@
                         renderCards(similarItems, similarContainer);
                     }
 
-                    // User reviews section
                     if (reviews.length > 0) {
                         const reviewsSection = document.createElement('div');
                         reviewsSection.className = 'mt-12';
@@ -521,11 +541,9 @@
                             reviewsContainer.appendChild(reviewCard);
                         });
 
-                        // Add event listeners for "Read More" buttons
                         document.querySelectorAll('.read-more-button').forEach(button => {
                             button.addEventListener('click', (e) => {
                                 const fullContent = decodeURIComponent(e.target.dataset.fullContent);
-                                // Using a custom modal for better UX instead of alert()
                                 showModal(fullContent);
                             });
                         });
@@ -537,7 +555,6 @@
                         contentArea.appendChild(noReviews);
                     }
 
-                    // Custom modal for displaying full reviews
                     const showModal = (content) => {
                         const modalOverlay = document.createElement('div');
                         modalOverlay.id = 'modal-overlay';
@@ -563,66 +580,76 @@
                         });
                     };
                 } catch (error) {
-                    // Tangani kesalahan jika ada
                     console.error("Failed to fetch movie details:", error);
                     loadingSpinner.remove();
                     contentArea.innerHTML = '<p class="text-center text-red-500">Error loading movie details. Please try again.</p>';
                 }
             };
             
-            // Function to handle URL hash changes and initial page load
+            // #############################################
+            // PENGELOLAAN ROUTING & EVENT LISTENERS
+            // #############################################
+
             const handleUrlHash = () => {
-                const hash = window.location.hash.slice(1); // Remove the #
+                const hash = window.location.hash.slice(1);
                 if (!hash) {
-                    // Show default view, since there's no hash
-                    heroSection.classList.remove('hidden');
-                    introSection.classList.remove('hidden');
-                    mainHeading.classList.remove('hidden');
-                    mainHeading.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-yellow-400 mr-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M18 3H6c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 5h12v14H6V5zm10 12h-2v-2h2v2zM8 7h2v2H8V7zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2z"/>
-                        </svg>
-                        Welcome to Peliculas Pro: Your Ultimate Destination for the Best Free Movie Streaming
-                    `;
-                    contentArea.innerHTML = '';
+                    updateState({ currentView: 'home' });
                     return;
                 }
 
                 const [view, type, id, ...rest] = hash.split('/');
-                const title = decodeURIComponent(rest.join(' ')); // Use decodeURIComponent to correctly parse the title
+                const title = decodeURIComponent(rest.join(' '));
                 
-                if (view === 'content' && type && id) {
-                    showDynamicContent('category', type, id, title);
-                } else if (view === 'details' && type && id) {
-                    showDetails(type, id);
-                } else if (view === 'genre' && type && id && title) {
-                    showDynamicContent('genre', type, id, `Film Genre: ${title}`);
-                } else if (view === 'search' && type) {
-                    showSearchResults(type);
+                switch(view) {
+                    case 'content':
+                        updateState({
+                            currentView: 'list',
+                            listParams: { fetchType: 'category', type, id, title },
+                            currentPage: 1
+                        });
+                        break;
+                    case 'details':
+                        updateState({
+                            currentView: 'details',
+                            detailsParams: { type, id }
+                        });
+                        break;
+                    case 'genre':
+                        updateState({
+                            currentView: 'list',
+                            listParams: { fetchType: 'genre', type, id, title: `Film Genre: ${title}` },
+                            currentPage: 1
+                        });
+                        break;
+                    case 'search':
+                        updateState({
+                            currentView: 'search',
+                            searchQuery: type
+                        });
+                        break;
+                    default:
+                        updateState({ currentView: 'home' });
+                        break;
                 }
             };
             
-            // Event listener for the main title to go back to home page
-            document.getElementById('home-link').addEventListener('click', () => {
-                window.location.hash = ''; // Set hash to empty to trigger home view
+            homeLink.addEventListener('click', () => {
+                window.location.hash = '';
             });
 
-            // Event listener for the search form
             searchForm.addEventListener('submit', (e) => {
-                e.preventDefault(); // Prevent the default form submission
+                e.preventDefault();
                 const query = searchInput.value;
                 if (query) {
                     window.location.hash = `search/${encodeURIComponent(query)}`;
                 }
             });
 
-            // Event listeners for dropdown buttons
             document.querySelectorAll('#movies-dropdown-menu button').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} Movies`;
-                    // Encode the title before setting the hash
                     window.location.hash = `content/${type}/${category}/${encodeURIComponent(title)}`;
                 });
             });
@@ -632,20 +659,16 @@
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} Tv Shows`;
-                    // Encode the title before setting the hash
                     window.location.hash = `content/${type}/${category}/${encodeURIComponent(title)}`;
                 });
             });
             
-            // Check if hash is empty on initial load, if so, set to a default view
             if (!window.location.hash) {
                 window.location.hash = 'content/movie/now_playing/Now%20Playing%20Movies';
+            } else {
+                handleUrlHash();
             }
-
-            // Initial call to handle the URL hash on page load
-            handleUrlHash();
             
-            // Listen for hash changes
             window.addEventListener('hashchange', handleUrlHash);
         });
     </script>

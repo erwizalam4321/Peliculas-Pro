@@ -21,244 +21,237 @@
             color: transparent;
             font-weight: 800;
         }
-        /* CSS untuk membuat header menjadi sticky */
-        .sticky-header {
-            position: sticky;
-            top: 0;
-            z-index: 50; /* Pastikan header berada di atas konten lain saat digulir */
+        /* CSS untuk menyembunyikan scrollbar tetapi tetap memungkinkan pengguliran */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        /* Keyframes untuk animasi loading */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+        /* Gaya untuk elemen loading */
+        .animate-pulse-slow {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        /* Gaya untuk genre badge */
+        .genre-badge {
+            display: inline-block;
+            background-color: #2D3748; /* bg-gray-700 */
+            color: #A0AEC0; /* text-gray-300 */
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px; /* rounded-full */
+            font-size: 0.875rem; /* text-sm */
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .genre-badge:hover {
+            background-color: #4A5568; /* bg-gray-600 */
         }
     </style>
-
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="Welcome to Peliculas Pro, the best free movie streaming platform online. Watch thousands of HD movies, from new releases to timeless classics, with no subscription required. Your ultimate source for unlimited entertainment.">
-    <meta name="keywords" content="Peliculas Pro, free movies, watch movies online, HD streaming, latest movies, popular movies, no subscription, free entertainment, online cinema, movie streaming site">
-    <link rel="canonical" href="https://peliculaspro.netlify.app/">
-
-    <!-- Open Graph & Twitter Meta Tags for social media sharing -->
-    <meta property="og:title" content="Peliculas Pro - Free HD Movie Streaming">
-    <meta property="og:description" content="The best free movie streaming platform. Watch thousands of HD movies for free.">
-    <meta property="og:image" content="https://live.staticflickr.com/65535/54698621370_1b976fbd76_b.jpg">
-    <meta property="og:url" content="https://peliculaspro.netlify.app/">
-    <meta property="og:type" content="website">
-    <meta property="fb:app_id" content="100074345305108">
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:site" content="@ErwizalA84074">
-    <meta property="twitter:title" content="Peliculas Pro - Free HD Movie Streaming">
-    <meta property="twitter:description" content="The best free movie streaming platform. Watch thousands of HD movies for free.">
-
 </head>
-<body class="bg-gray-900 text-gray-200">
-    <!-- Header and Navigation -->
-    <!-- Menambahkan class 'sticky-header' untuk membuat header tetap di atas saat scroll -->
-    <header class="bg-gray-800 shadow-md sticky-header">
-        <!-- New container to match the width of the main content -->
-        <div class="container mx-auto px-4 max-w-7xl">
-            <nav class="p-4 flex flex-col md:flex-row justify-between items-center">
-                <a href="#" id="home-link" class="flex items-center mb-4 md:mb-0">
-                    <!-- Movie Icon -->
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400 mr-3" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18 3H6c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 5h12v14H6V5zm10 12h-2v-2h2v2zM8 7h2v2H8V7zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2z"/>
-                    </svg>
-                    <span class="rainbow-text-header text-3xl md:text-4xl">Peliculas Pro</span>
-                </a>
-                <!-- Navigation links, dropdowns, and search bar -->
-                <div class="flex items-center space-x-4">
-                    <a href="#" class="text-white hover:text-red-500 hover:font-bold transition-colors duration-300">Home</a>
-                    <div class="relative group">
-                        <button id="movies-dropdown-button" class="text-white hover:text-blue-500 hover:font-bold transition-colors duration-300 flex items-center">
-                            Movies
-                            <svg class="h-4 w-4 ml-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-                        <div id="movies-dropdown-menu" class="absolute opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 bg-gray-700 text-white rounded-lg shadow-lg mt-2 py-2 z-10 w-48">
-                            <button class="block w-full text-left px-4 py-2 hover:bg-gray-600" data-category="popular" data-type="movie">Popular</button>
-                            <button class="block w-full text-left px-4 py-2 hover:bg-gray-600" data-category="now_playing" data-type="movie">Now Playing</button>
-                            <button class="block w-full text-left px-4 py-2 hover:bg-gray-600" data-category="upcoming" data-type="movie">Upcoming</button>
-                            <button class="block w-full text-left px-4 py-2 hover:bg-gray-600" data-category="top_rated" data-type="movie">Top Rated</button>
-                        </div>
-                    </div>
-                    <div class="relative group">
-                        <button id="tv-shows-dropdown-button" class="text-white hover:text-yellow-400 transition-colors duration-300 flex items-center">
-                            Tv Shows
-                            <svg class="h-4 w-4 ml-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-                        <div id="tv-shows-dropdown-menu" class="absolute opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 bg-gray-700 text-white rounded-lg shadow-lg mt-2 py-2 z-10 w-48">
-                            <button class="block w-full text-left px-4 py-2 hover:bg-gray-600" data-category="popular" data-type="tv">Popular</button>
-                            <button class="block w-full text-left px-4 py-2 hover:bg-gray-600" data-category="airing_today" data-type="tv">Airing Today</button>
-                            <button class="block w-full text-left px-4 py-2 hover:bg-gray-600" data-category="on_the_air" data-type="tv">On TV</button>
-                            <button class="block w-full text-left px-4 py-2 hover:bg-gray-600" data-category="top_rated" data-type="tv">Top Rated</button>
-                        </div>
-                    </div>
-                    <!-- Search Form -->
-                    <form id="search-form" class="flex items-center">
-                        <input type="text" id="search-input" placeholder="Search movies or TV shows..." class="px-3 py-1 text-sm rounded-l-full bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-40 md:w-auto">
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-r-full shadow-lg transition-colors duration-300">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </button>
-                    </form>
-                </div>
-            </nav>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-gray-800 shadow-lg py-4 px-6 md:px-10 flex flex-col md:flex-row items-center justify-between z-10 sticky top-0">
+        <div class="flex items-center w-full md:w-auto justify-between md:justify-start mb-4 md:mb-0">
+            <a href="/" class="text-3xl font-extrabold rainbow-text-header mr-6" id="home-link">Peliculas Pro</a>
+            <!-- Dropdown for Mobile -->
+            <div class="md:hidden">
+                <button id="mobile-menu-button" class="text-white focus:outline-none">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-4 6h4"></path></svg>
+                </button>
+            </div>
         </div>
+        
+        <!-- Mobile Navigation Menu -->
+        <nav id="mobile-navigation-menu" class="hidden md:hidden w-full text-center">
+            <ul class="flex flex-col items-center space-y-4 py-4">
+                <li>
+                    <button id="mobile-movies-dropdown-btn" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-lg font-medium focus:outline-none">Movies</button>
+                    <div id="mobile-movies-dropdown-menu" class="hidden flex flex-col mt-2 space-y-2 bg-gray-700 rounded-md p-2">
+                        <button class="block px-4 py-2 text-md text-gray-200 hover:bg-gray-600 rounded-md" data-type="movie" data-category="now_playing">Now Playing</button>
+                        <button class="block px-4 py-2 text-md text-gray-200 hover:bg-gray-600 rounded-md" data-type="movie" data-category="popular">Popular</button>
+                        <button class="block px-4 py-2 text-md text-gray-200 hover:bg-gray-600 rounded-md" data-type="movie" data-category="top_rated">Top Rated</button>
+                        <button class="block px-4 py-2 text-md text-gray-200 hover:bg-gray-600 rounded-md" data-type="movie" data-category="upcoming">Upcoming</button>
+                    </div>
+                </li>
+                <li>
+                    <button id="mobile-tv-shows-dropdown-btn" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-lg font-medium focus:outline-none">TV Shows</button>
+                    <div id="mobile-tv-shows-dropdown-menu" class="hidden flex flex-col mt-2 space-y-2 bg-gray-700 rounded-md p-2">
+                        <button class="block px-4 py-2 text-md text-gray-200 hover:bg-gray-600 rounded-md" data-type="tv" data-category="airing_today">Airing Today</button>
+                        <button class="block px-4 py-2 text-md text-gray-200 hover:bg-gray-600 rounded-md" data-type="tv" data-category="on_the_air">On The Air</button>
+                        <button class="block px-4 py-2 text-md text-gray-200 hover:bg-gray-600 rounded-md" data-type="tv" data-category="popular">Popular</button>
+                        <button class="block px-4 py-2 text-md text-gray-200 hover:bg-gray-600 rounded-md" data-type="tv" data-category="top_rated">Top Rated</button>
+                    </div>
+                </li>
+                <li>
+                    <form id="mobile-search-form" class="w-full px-4">
+                        <input type="text" id="mobile-search-input" placeholder="Search movies or TV shows..." class="w-full p-3 rounded-full bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </form>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Desktop Navigation Menu -->
+        <nav class="hidden md:flex flex-grow justify-center items-center">
+            <ul class="flex space-x-6 lg:space-x-10">
+                <li class="relative group">
+                    <button class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-lg font-medium focus:outline-none">Movies</button>
+                    <div id="movies-dropdown-menu" class="absolute left-1/2 transform -translate-x-1/2 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-1 z-20 hidden group-hover:block">
+                        <button class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 w-full text-left" data-type="movie" data-category="now_playing">Now Playing</button>
+                        <button class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 w-full text-left" data-type="movie" data-category="popular">Popular</button>
+                        <button class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 w-full text-left" data-type="movie" data-category="top_rated">Top Rated</button>
+                        <button class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 w-full text-left" data-type="movie" data-category="upcoming">Upcoming</button>
+                    </div>
+                </li>
+                <li class="relative group">
+                    <button class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-lg font-medium focus:outline-none">TV Shows</button>
+                    <div id="tv-shows-dropdown-menu" class="absolute left-1/2 transform -translate-x-1/2 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-1 z-20 hidden group-hover:block">
+                        <button class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 w-full text-left" data-type="tv" data-category="airing_today">Airing Today</button>
+                        <button class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 w-full text-left" data-type="tv" data-category="on_the_air">On The Air</button>
+                        <button class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 w-full text-left" data-type="tv" data-category="popular">Popular</button>
+                        <button class="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-600 w-full text-left" data-type="tv" data-category="top_rated">Top Rated</button>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Search Bar (Desktop) -->
+        <form id="search-form" class="hidden md:block w-full md:w-1/3 lg:w-1/4">
+            <input type="text" id="search-input" placeholder="Search movies or TV shows..." class="w-full p-3 rounded-full bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </form>
     </header>
 
-    <!-- Main Content -->
-    <main id="main-content" class="container mx-auto px-4 py-8 max-w-7xl">
-        <!-- Main Banner Image -->
-        <div id="hero-section" class="mb-8 rounded-lg overflow-hidden shadow-lg">
-            <img src="https://live.staticflickr.com/65535/54698621370_1b976fbd76_b.jpg" alt="Peliculas Pro Movie Streaming Banner" class="w-full h-auto">
-        </div>
-
-        <!-- Main Heading -->
-        <h1 id="main-heading" class="text-3xl md:text-4xl font-extrabold text-white mb-6 leading-tight flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-yellow-400 mr-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18 3H6c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 5h12v14H6V5zm10 12h-2v-2h2v2zM8 7h2v2H8V7zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2z"/>
-            </svg>
-            Welcome to Peliculas Pro: Your Ultimate Destination for the Best Free Movie Streaming
-        </h1>
-
-        <!-- Introduction Section -->
-        <p id="intro-section" class="text-lg mb-8 text-gray-300 text-justify">
-            Welcome to Peliculas Pro, a revolutionary platform designed specifically for cinema lovers seeking a high-quality movie watching experience at no cost. In today's digital age, where entertainment is an inseparable part of daily life, Peliculas Pro serves as an advanced solution to meet your needs. We understand how valuable your free time is, and we are committed to providing unlimited access to thousands of films across various genres, from the latest Hollywood blockbusters to timeless classics. With a constantly updated collection and a user-friendly interface, Peliculas Pro is not just a streaming site but a community for those passionate about the seventh art.
-        </p>
-        
-        <!-- Placeholder for dynamic content -->
-        <div id="content-area"></div>
+    <!-- Main Content Area -->
+    <main id="content-area" class="flex-grow container mx-auto px-4 py-8">
+        <!-- Content will be loaded here -->
     </main>
 
-    <!-- Footer Section -->
-    <footer class="bg-gray-800 text-center text-gray-400 p-4 mt-12">
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="animate-spin rounded-full h-32 w-32 border-b-4 border-blue-500"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-400 text-center py-6 mt-8">
         <p>&copy; 2024 Peliculas Pro. All rights reserved.</p>
+        <p class="text-sm mt-2">Powered by The Movie Database (TMDB) API.</p>
     </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // #############################################
-            // API KEY CONFIGURATION (UPDATED)
-            // #############################################
-            // A list of available API keys/proxies. The application will try the first one,
-            // and if it fails, it will fall back to the next one.
-            const apiKeys = [
-                'tmdb-api-proxy.argoyuwono119.workers.dev',
-                'tmdb-api-proxy.musadekakhmad.workers.dev',
-                'tmdb-api-proxy-1.musadekakhmad.workers.dev'
-            ];
-            
-            // #############################################
-            // CENTRALIZED STATE MANAGEMENT
-            // #############################################
+            // ** Perbaikan: Menggunakan URL proxy baru dan menghapus API Key **
+            const BASE_URL = 'https://tmdb-api-proxy-1.musadekakhmad.workers.dev/3';
 
+            // Element DOM
             const contentArea = document.getElementById('content-area');
-            const heroSection = document.getElementById('hero-section');
-            const introSection = document.getElementById('intro-section');
-            const mainHeading = document.getElementById('main-heading');
+            const homeLink = document.getElementById('home-link');
             const searchForm = document.getElementById('search-form');
             const searchInput = document.getElementById('search-input');
-            const homeLink = document.getElementById('home-link');
+            const mobileSearchForm = document.getElementById('mobile-search-form');
+            const mobileSearchInput = document.getElementById('mobile-search-input');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileNavigationMenu = document.getElementById('mobile-navigation-menu');
+            const mobileMoviesDropdownBtn = document.getElementById('mobile-movies-dropdown-btn');
+            const mobileMoviesDropdownMenu = document.getElementById('mobile-movies-dropdown-menu');
+            const mobileTvShowsDropdownBtn = document.getElementById('mobile-tv-shows-dropdown-btn');
+            const mobileTvShowsDropdownMenu = document.getElementById('mobile-tv-shows-dropdown-menu');
 
+            // Global State
             const state = {
-                currentPage: 1,
-                renderedItemIds: new Set(),
                 currentView: 'home', // 'home', 'list', 'details', 'search'
-                listParams: null, // { fetchType, type, id, title }
-                detailsParams: null, // { type, id, title }
-                searchQuery: null,
+                listParams: null,    // { fetchType: 'category'/'genre', type: 'movie'/'tv', id: 'category_id'/'genre_id', title: 'Category/Genre Title' }
+                detailsParams: null, // { type: 'movie'/'tv', id: 'item_id', title: 'Item Title' }
+                searchQuery: null,   // The current search query
+                currentPage: 1,      // Current page for lists
+                totalPages: 1,       // Total pages available for current list
+                renderedItemIds: new Set(), // To prevent duplicate cards on scroll
+                isFetching: false,   // To prevent multiple fetches on scroll
+                lastScrollTop: 0     // To detect scroll direction
             };
 
-            const updateState = (newState) => {
-                Object.assign(state, newState);
-                render();
-            };
-
-            const render = () => {
-                heroSection.classList.add('hidden');
-                introSection.classList.add('hidden');
-                mainHeading.classList.add('hidden');
-                contentArea.innerHTML = '';
-                
-                state.renderedItemIds.clear();
-
-                switch (state.currentView) {
-                    case 'home':
-                        heroSection.classList.remove('hidden');
-                        introSection.classList.remove('hidden');
-                        mainHeading.classList.remove('hidden');
-                        mainHeading.innerHTML = `
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-yellow-400 mr-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M18 3H6c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 5h12v14H6V5zm10 12h-2v-2h2v2zM8 7h2v2H8V7zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2z"/>
-                            </svg>
-                            Welcome to Peliculas Pro: Your Ultimate Destination for the Best Free Movie Streaming
-                        `;
-                        break;
-                    case 'list':
-                        showDynamicContent(state.listParams.fetchType, state.listParams.type, state.listParams.id, state.listParams.title);
-                        break;
-                    case 'details':
-                        showDetails(state.detailsParams.type, state.detailsParams.id, state.detailsParams.title);
-                        break;
-                    case 'search':
-                        showSearchResults(state.searchQuery);
-                        break;
-                }
-            };
-            
             // #############################################
-            // UTILITY FUNCTIONS & API CALLS
+            // UTILITY FUNCTIONS
             // #############################################
-            // Function to perform a fetch with fallback if an API key fails
-            const safeFetch = async (urlSuffix, options = {}) => {
-                for (const apiKey of apiKeys) {
-                    const url = `https://${apiKey}${urlSuffix}`;
-                    try {
-                        const response = await fetch(url, options);
-                        if (response.ok) {
-                            return response.json();
-                        }
-                    } catch (error) {
-                        console.warn(`Failed to fetch from ${apiKey}. Trying next API key.`, error);
+
+            const showLoading = () => {
+                loadingSpinner.classList.remove('hidden');
+            };
+
+            const hideLoading = () => {
+                loadingSpinner.classList.add('hidden');
+            };
+
+            // ** Perbaikan: Menghapus `api_key` dari parameter URL **
+            const fetchApi = async (path, params = {}) => {
+                showLoading();
+                const urlParams = new URLSearchParams(params); // Tidak perlu API Key di sini
+                try {
+                    const response = await fetch(`${BASE_URL}${path}?${urlParams.toString()}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                }
-                throw new Error('All API keys failed to fetch data.');
-            };
-
-            const fetchContent = async (type, category, page = 1) => {
-                const urlSuffix = `/${type}/${category}?page=${page}`;
-                try {
-                    const data = await safeFetch(urlSuffix);
-                    return data.results;
+                    return await response.json();
                 } catch (error) {
-                    console.error('Error fetching data:', error);
-                    return [];
-                }
-            };
-            
-            const fetchByGenre = async (type, genreId, page = 1) => {
-                const urlSuffix = `/discover/${type}?with_genres=${genreId}&page=${page}`;
-                try {
-                    const data = await safeFetch(urlSuffix);
-                    return data.results;
-                } catch (error) {
-                    console.error('Error fetching data by genre:', error);
-                    return [];
+                    console.error("Error fetching data:", error);
+                    contentArea.innerHTML = `<p class="text-red-500 text-center">Failed to load content. Please try again later.</p>`;
+                    return null;
+                } finally {
+                    hideLoading();
                 }
             };
 
-            const fetchSearchResults = async (query) => {
-                const urlSuffix = `/search/multi?query=${encodeURIComponent(query)}`;
-                try {
-                    const data = await safeFetch(urlSuffix);
-                    return data.results;
-                } catch (error) {
-                    console.error('Error fetching search results:', error);
-                    return [];
+            const createCardSkeleton = () => {
+                const skeleton = document.createElement('div');
+                skeleton.className = 'bg-gray-800 rounded-lg shadow-md overflow-hidden animate-pulse-slow';
+                skeleton.innerHTML = `
+                    <div class="bg-gray-700 w-full h-64 md:h-80 lg:h-96"></div>
+                    <div class="p-4">
+                        <div class="h-6 bg-gray-700 rounded w-3/4 mb-2"></div>
+                        <div class="h-4 bg-gray-700 rounded w-1/2"></div>
+                    </div>
+                `;
+                return skeleton;
+            };
+
+            const renderCardSkeletons = (container, count) => {
+                for (let i = 0; i < count; i++) {
+                    container.appendChild(createCardSkeleton());
                 }
             };
 
-            const renderCards = (items, container) => {
+            const clearContent = () => {
+                contentArea.innerHTML = '';
+                state.renderedItemIds.clear();
+                state.currentPage = 1;
+                state.totalPages = 1;
+                state.listParams = null;
+                state.detailsParams = null;
+                state.searchQuery = null;
+            };
+
+            // #############################################
+            // RENDERING FUNCTIONS
+            // #############################################
+
+            const renderCards = (items, container, append = false) => {
+                if (!append) {
+                    container.innerHTML = ''; // Clear existing cards if not appending
+                    state.renderedItemIds.clear(); // Reset rendered IDs if starting fresh
+                }
+
                 items.forEach(item => {
                     const mediaType = item.media_type || (item.title ? 'movie' : 'tv');
 
@@ -280,328 +273,346 @@
                             <p class="text-sm text-gray-400 mt-1">Rating: ${item.vote_average.toFixed(1)}</p>
                         </div>
                     `;
-
-                    // Update the click handler to include the movie title in the hash
                     card.addEventListener('click', () => {
-                        window.location.hash = `details/${mediaType}/${item.id}/${encodeURIComponent(title)}`;
+                        // Use history.pushState for details page
+                        const urlTitle = title.replace(/ /g, '-').toLowerCase().replace(/[^a-z0-9-]/g, ''); // Simple slug for cleaner URL
+                        history.pushState(null, '', `/details/${mediaType}/${item.id}/${urlTitle}`);
+                        updateState({ currentView: 'details', detailsParams: { type: mediaType, id: item.id, title: title } });
                     });
-
                     container.appendChild(card);
                 });
             };
 
-            const showDynamicContent = async (fetchType, type, id, title) => {
-                mainHeading.innerHTML = `<h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">${title}</h2>`;
-                mainHeading.classList.remove('hidden');
-
-                const itemsContainer = document.createElement('div');
-                itemsContainer.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6';
-                
-                let items;
-                if (fetchType === 'category') {
-                    items = await fetchContent(type, id, state.currentPage);
-                } else if (fetchType === 'genre') {
-                    items = await fetchByGenre(type, id, state.currentPage);
-                }
-
-                if (items && items.length > 0) {
-                    contentArea.appendChild(itemsContainer);
-                    renderCards(items, itemsContainer);
-
-                    const loadMoreButton = document.createElement('button');
-                    loadMoreButton.className = 'mt-8 mx-auto block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform duration-300 transform hover:scale-105';
-                    loadMoreButton.textContent = 'Load More';
-                    
-                    loadMoreButton.addEventListener('click', async () => {
-                        updateState({ currentPage: state.currentPage + 1 });
-                        let moreItems;
-                        if (fetchType === 'category') {
-                            moreItems = await fetchContent(type, id, state.currentPage);
-                        } else if (fetchType === 'genre') {
-                            moreItems = await fetchByGenre(type, id, state.currentPage);
-                        }
-
-                        if (moreItems && moreItems.length > 0) {
-                            renderCards(moreItems, itemsContainer);
-                        } else {
-                            loadMoreButton.textContent = 'No More Items';
-                            loadMoreButton.disabled = true;
-                        }
-                    });
-
-                    contentArea.appendChild(loadMoreButton);
-                } else {
-                    contentArea.innerHTML = '<p class="text-center text-gray-500">No content found.</p>';
-                }
-            };
-            
-            const showSearchResults = async (query) => {
-                mainHeading.innerHTML = `<h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">Search Results for: "${decodeURIComponent(query)}"</h2>`;
-                mainHeading.classList.remove('hidden');
-
-                const searchResults = await fetchSearchResults(query);
-
-                if (searchResults && searchResults.length > 0) {
-                    const itemsContainer = document.createElement('div');
-                    itemsContainer.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6';
-                    contentArea.appendChild(itemsContainer);
-                    renderCards(searchResults, itemsContainer);
-                } else {
-                    contentArea.innerHTML = '<p class="text-center text-gray-500">No results found for your search.</p>';
-                }
-            };
-
-            const showDetails = async (type, id, titleFromHash) => {
-                const loadingSpinner = document.createElement('div');
-                loadingSpinner.className = 'flex justify-center items-center h-64';
-                loadingSpinner.innerHTML = `
-                    <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+            const showHomePage = async () => {
+                clearContent();
+                state.currentView = 'home';
+                contentArea.innerHTML = `
+                    <h2 class="text-3xl font-bold text-white mb-6">Trending Movies & TV Shows</h2>
+                    <div id="trending-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"></div>
+                    <h2 class="text-3xl font-bold text-white mb-6 mt-10">Popular Movies</h2>
+                    <div id="popular-movies-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"></div>
+                    <h2 class="text-3xl font-bold text-white mb-6 mt-10">Popular TV Shows</h2>
+                    <div id="popular-tv-shows-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"></div>
                 `;
-                contentArea.appendChild(loadingSpinner);
+
+                const trendingContainer = document.getElementById('trending-container');
+                const popularMoviesContainer = document.getElementById('popular-movies-container');
+                const popularTvShowsContainer = document.getElementById('popular-tv-shows-container');
+
+                renderCardSkeletons(trendingContainer, 12);
+                renderCardSkeletons(popularMoviesContainer, 12);
+                renderCardSkeletons(popularTvShowsContainer, 12);
+
+                const [trendingData, popularMoviesData, popularTvShowsData] = await Promise.all([
+                    fetchApi('/trending/all/week'),
+                    fetchApi('/movie/popular'),
+                    fetchApi('/tv/popular')
+                ]);
+
+                if (trendingData) renderCards(trendingData.results.slice(0, 12), trendingContainer);
+                if (popularMoviesData) renderCards(popularMoviesData.results.slice(0, 12), popularMoviesContainer);
+                if (popularTvShowsData) renderCards(popularTvShowsData.results.slice(0, 12), popularTvShowsContainer);
+            };
+
+            const showListingsPage = async (params) => {
+                clearContent();
+                state.currentView = 'list';
+                state.listParams = params;
+
+                contentArea.innerHTML = `
+                    <h2 class="text-3xl font-bold text-white mb-6">${params.title}</h2>
+                    <div id="listing-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"></div>
+                    <div id="load-more-spinner" class="text-center py-4 hidden">
+                        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto"></div>
+                    </div>
+                `;
                 
-                try {
-                    const [details, videosData, creditsData, similarData, reviewsData] = await Promise.all([
-                        safeFetch(`/${type}/${id}`),
-                        safeFetch(`/${type}/${id}/videos`),
-                        safeFetch(`/${type}/${id}/credits`),
-                        safeFetch(`/${type}/${id}/similar`),
-                        safeFetch(`/${type}/${id}/reviews`)
-                    ]);
+                const listingContainer = document.getElementById('listing-container');
+                renderCardSkeletons(listingContainer, 20); // Render initial skeletons
 
-                    loadingSpinner.remove();
+                await fetchAndRenderList(listingContainer);
+            };
 
-                    const backButton = document.createElement('button');
-                    backButton.className = 'bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 mb-6';
-                    backButton.innerHTML = '← Back';
-                    backButton.addEventListener('click', () => history.back());
-                    contentArea.appendChild(backButton);
+            const fetchAndRenderList = async (container) => {
+                if (state.isFetching || state.currentPage > state.totalPages) return;
 
-                    const trailer = videosData.results.find(video => video.type === 'Trailer' && video.site === 'YouTube');
-                    const director = creditsData.crew.find(member => member.job === 'Director');
-                    const cast = creditsData.cast.slice(0, 5).map(actor => actor.name).join(', ');
-                    const similarItems = similarData.results.slice(0, 6);
-                    const reviews = reviewsData.results.slice(0, 5);
+                state.isFetching = true;
+                const loadMoreSpinner = document.getElementById('load-more-spinner');
+                if (loadMoreSpinner) loadMoreSpinner.classList.remove('hidden');
 
-                    const detailContainer = document.createElement('div');
-                    detailContainer.className = 'grid grid-cols-1 md:grid-cols-3 gap-8';
-
-                    const posterPath = details.poster_path;
-                    const posterUrl = posterPath ? `https://image.tmdb.org/t/p/w500/${posterPath}` : 'https://placehold.co/500x750?text=No+Image';
-
-                    const originalTitle = (details.title || details.name) !== details.original_title ? details.original_title : '';
-
-                    let genreLinks = '';
-                    if (details.genres && details.genres.length > 0) {
-                        genreLinks = details.genres.map(g => 
-                            `<span class="genre-link cursor-pointer text-blue-400 hover:text-blue-200 hover:underline" data-genre-id="${g.id}" data-genre-name="${g.name}">${g.name}</span>`
-                        ).join(', ');
-                    } else {
-                        genreLinks = 'N/A';
-                    }
-
-                    detailContainer.innerHTML = `
-                        <div class="md:col-span-1">
-                            <img src="${posterUrl}" alt="Poster for ${details.title || details.name}" class="rounded-lg shadow-xl w-full">
-                        </div>
-                        <div class="md:col-span-2">
-                            <h1 class="text-5xl font-extrabold text-white mb-2">${details.title || details.name}</h1>
-                            ${originalTitle ? `<p class="text-xl text-gray-400 italic mb-6">(${originalTitle})</p>` : ''}
-                            <p class="text-lg text-gray-400 mb-6">${details.tagline || ''}</p>
-                            
-                            <h2 class="text-2xl font-bold text-yellow-400 mb-4">Film Details</h2>
-                            <div class="text-gray-300 space-y-4 mb-6">
-                                <!-- Detail for Overview -->
-                                <div class="flex flex-col">
-                                    <p class="flex items-center mb-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-2 2a2 2 0 11-4 0 2 2 0 014 0zm-4 0v1.5c0 .65.34 1.27.94 1.62m4.12-1.62v1.5c0 .65-.34 1.27-.94 1.62M11 20h1.5a1.5 1.5 0 000-3H11V20z" />
-                                        </svg>
-                                        <strong class="font-bold text-white">Overview:</strong>
-                                    </p>
-                                    <p class="ml-8 text-gray-300 text-justify">${details.overview || 'N/A'}</p>
-                                </div>
-
-                                <!-- Detail for Release Date -->
-                                <div class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h.01M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    <strong class="font-bold text-white">Release Date:</strong> <span class="ml-2">${details.release_date || details.first_air_date || 'N/A'}</span>
-                                </div>
-
-                                <!-- Detail for Rating -->
-                                <div class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-400 mr-2 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                                    </svg>
-                                    <strong class="font-bold text-white">Rating:</strong> <span class="ml-2">${details.vote_average.toFixed(1)} / 10 (${details.vote_count} votes)</span>
-                                </div>
-
-                                <!-- Detail for Genres -->
-                                <div class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h18M3 12h18M3 16h18M7 8v8M17 8v8" />
-                                    </svg>
-                                    <strong class="font-bold text-white">Genres:</strong> <span class="ml-2">${genreLinks}</span>
-                                </div>
-
-                                <!-- Detail for Director -->
-                                <div class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-pink-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10.5a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.5 12a4.5 4.5 0 00-9 0c0 2.485 1.563 4.536 3.75 5.584V21h1.5v-3.416c2.187-1.048 3.75-3.099 3.75-5.584z" />
-                                    </svg>
-                                    <strong class="font-bold text-white">Director:</strong> <span class="ml-2">${director ? director.name : 'N/A'}</span>
-                                </div>
-
-                                <!-- Detail for Actors -->
-                                <div class="flex flex-col">
-                                    <p class="flex items-center mb-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-cyan-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm0-4c-.552 0-1-.448-1-1s.448-1 1-1 1 .448 1 1-.448 1-1 1z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 17h-1.5a1.5 1.5 0 00-1.5-1.5V21H6v-2.5a1.5 1.5 0 00-1.5-1.5H3V6a3 3 0 013-3h12a3 3 0 013 3v11z" />
-                                    </svg>
-                                    <strong class="font-bold text-white">Actors:</strong>
-                                    </p>
-                                    <p class="ml-8 text-gray-300">${cast || 'N/A'}</p>
-                                </div>
-
-                                <!-- Detail for Original Language -->
-                                <div class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5.7M9.363 4.463l-2.079 1.77A2.99 2.99 0 006 8.322V15.5c0 1.577.828 3.015 2.188 3.82L10 21.5h4l1.812-2.18c1.36-.805 2.188-2.243 2.188-3.82V8.322a2.99 2.99 0 00-.784-2.137l-2.08-1.77M11.999 4h.001" />
-                                    </svg>
-                                    <strong class="font-bold text-white">Original Language:</strong> <span class="ml-2">${details.original_language.toUpperCase() || 'N/A'}</span>
-                                </div>
-
-                                <!-- Detail for Homepage -->
-                                <div class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172A2 2 0 0012 8V6a2 2 0 10-4 0v2m4 4v2m2 4h4a2 2 0 002-2v-6m-4-2a2 2 0 01-2-2V4a2 2 0 114 0v4m-6 4h4m-2 2v4a2 2 0 104 0v-4" />
-                                    </svg>
-                                    <strong class="font-bold text-white">Homepage:</strong> <span class="ml-2"><a href="${details.homepage}" class="text-blue-400 hover:underline" target="_blank">${details.homepage || 'N/A'}</a></span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    contentArea.appendChild(detailContainer);
-                    
-                    document.querySelectorAll('.genre-link').forEach(link => {
-                        link.addEventListener('click', (e) => {
-                            const genreId = e.target.dataset.genreId;
-                            const genreName = e.target.dataset.genreName;
-                            window.location.hash = `genre/${type}/${genreId}/${encodeURIComponent(genreName)}`;
-                        });
+                let data;
+                if (state.listParams.fetchType === 'category') {
+                    data = await fetchApi(`/${state.listParams.type}/${state.listParams.id}`, { page: state.currentPage });
+                } else if (state.listParams.fetchType === 'genre') {
+                    // For genre, we use the discover endpoint
+                    data = await fetchApi(`/discover/${state.listParams.type}`, {
+                        with_genres: state.listParams.id,
+                        page: state.currentPage
                     });
+                }
+                
+                if (data) {
+                    state.totalPages = data.total_pages;
+                    renderCards(data.results, container, true); // Append cards
+                    state.currentPage++;
+                }
+                state.isFetching = false;
+                if (loadMoreSpinner) loadMoreSpinner.classList.add('hidden');
+            };
 
+            const showDetails = async (params) => {
+                clearContent();
+                state.currentView = 'details';
+                state.detailsParams = params;
+                contentArea.innerHTML = `
+                    <div id="detail-container" class="bg-gray-800 rounded-lg shadow-xl p-6 lg:flex lg:items-start lg:space-x-8">
+                        <!-- Skeletons for details -->
+                        <div class="lg:w-1/3 flex-shrink-0">
+                            <div class="bg-gray-700 w-full h-96 rounded-lg animate-pulse-slow"></div>
+                        </div>
+                        <div class="lg:w-2/3 mt-6 lg:mt-0">
+                            <div class="h-10 bg-gray-700 rounded w-3/4 mb-4 animate-pulse-slow"></div>
+                            <div class="h-6 bg-gray-700 rounded w-1/2 mb-4 animate-pulse-slow"></div>
+                            <div class="h-4 bg-gray-700 rounded w-full mb-2 animate-pulse-slow"></div>
+                            <div class="h-4 bg-gray-700 rounded w-full mb-2 animate-pulse-slow"></div>
+                            <div class="h-4 bg-gray-700 rounded w-5/6 mb-6 animate-pulse-slow"></div>
+                            <div class="h-8 bg-gray-700 rounded w-1/4 mb-4 animate-pulse-slow"></div>
+                            <div class="h-6 bg-gray-700 rounded w-1/3 mb-2 animate-pulse-slow"></div>
+                            <div class="h-6 bg-gray-700 rounded w-1/4 animate-pulse-slow"></div>
+                        </div>
+                    </div>
+                `;
+
+                const detailContainer = document.getElementById('detail-container');
+                const data = await fetchApi(`/${params.type}/${params.id}`, { append_to_response: 'credits,videos,recommendations' });
+
+                if (!data) {
+                    contentArea.innerHTML = `<p class="text-red-500 text-center">Failed to load details for ${params.title}.</p>`;
+                    return;
+                }
+
+                const title = data.title || data.name;
+                const posterPath = data.poster_path;
+                const posterUrl = posterPath ? `https://image.tmdb.org/t/p/w500/${posterPath}` : 'https://placehold.co/500x750?text=No+Image';
+                const backdropPath = data.backdrop_path;
+                const backdropUrl = backdropPath ? `https://image.tmdb.org/t/p/original/${backdropPath}` : '';
+
+                // Extract director (for movies) or creator (for TV)
+                let directorOrCreator = 'N/A';
+                if (params.type === 'movie' && data.credits && data.credits.crew) {
+                    const director = data.credits.crew.find(person => person.job === 'Director');
+                    if (director) directorOrCreator = director.name;
+                } else if (params.type === 'tv' && data.created_by && data.created_by.length > 0) {
+                    directorOrCreator = data.created_by.map(creator => creator.name).join(', ');
+                }
+
+                // Get main trailer/teaser
+                let trailerUrl = '';
+                if (data.videos && data.videos.results.length > 0) {
+                    const trailer = data.videos.results.find(video => video.type === 'Trailer' && video.site === 'YouTube') ||
+                                    data.videos.results.find(video => video.type === 'Teaser' && video.site === 'YouTube') ||
+                                    data.videos.results.find(video => video.site === 'YouTube'); // Fallback to any YouTube video
                     if (trailer) {
-                        const trailerSection = document.createElement('div');
-                        trailerSection.className = 'w-full mt-12 text-center';
-                        trailerSection.innerHTML = `
-                            <h3 class="text-3xl font-bold text-white mb-6">Trailer</h3>
-                            <div class="relative mx-auto w-full max-w-4xl aspect-video rounded-lg overflow-hidden shadow-xl">
-                                <iframe class="absolute top-0 left-0 w-full h-full" src="https://www.youtube.com/embed/${trailer.key}" frameborder="0" allowfullscreen></iframe>
+                        trailerUrl = `https://www.youtube.com/embed/${trailer.key}`;
+                    }
+                }
+
+                detailContainer.style.backgroundImage = backdropUrl ? `linear-gradient(rgba(17, 24, 39, 0.9), rgba(17, 24, 39, 0.9)), url(${backdropUrl})` : 'none';
+                detailContainer.style.backgroundSize = 'cover';
+                detailContainer.style.backgroundPosition = 'center';
+                detailContainer.style.backgroundRepeat = 'no-repeat';
+
+                detailContainer.innerHTML = `
+                    <div class="lg:w-1/3 flex-shrink-0">
+                        <img src="${posterUrl}" alt="Poster for ${title}" class="w-full h-auto rounded-lg shadow-lg">
+                    </div>
+                    <div class="lg:w-2/3 mt-6 lg:mt-0">
+                        <h2 class="text-4xl font-extrabold text-white mb-2">${title}</h2>
+                        <p class="text-lg text-gray-300 mb-4">${data.tagline || ''}</p>
+                        
+                        <div class="flex items-center space-x-4 mb-4">
+                            <p class="text-xl font-bold text-yellow-400">⭐ ${data.vote_average ? data.vote_average.toFixed(1) : 'N/A'}</p>
+                            <p class="text-md text-gray-400">${params.type === 'movie' ? (data.release_date ? data.release_date.substring(0, 4) : 'N/A') : (data.first_air_date ? data.first_air_date.substring(0, 4) : 'N/A')}</p>
+                            ${data.runtime ? `<p class="text-md text-gray-400">${Math.floor(data.runtime / 60)}h ${data.runtime % 60}m</p>` : ''}
+                            ${data.number_of_seasons ? `<p class="text-md text-gray-400">${data.number_of_seasons} Seasons</p>` : ''}
+                        </div>
+
+                        <p class="text-gray-300 leading-relaxed mb-6">${data.overview}</p>
+
+                        <div class="mb-6">
+                            <h3 class="text-xl font-semibold text-white mb-2">Genres:</h3>
+                            <div id="genre-badges" class="flex flex-wrap gap-2">
+                                ${data.genres.map(genre => `<span class="genre-badge cursor-pointer" data-genre-id="${genre.id}" data-genre-name="${genre.name}">${genre.name}</span>`).join('')}
                             </div>
-                        `;
-                        contentArea.appendChild(trailerSection);
-                    }
+                        </div>
 
-                    if (similarItems.length > 0) {
-                        const similarSection = document.createElement('div');
-                        similarSection.className = 'mt-12';
-                        similarSection.innerHTML = `
-                            <h4 class="text-3xl font-bold text-white mb-6">Similar Movies</h4>
-                            <div id="similar-movies-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4"></div>
-                        `;
-                        contentArea.appendChild(similarSection);
+                        <div class="mb-6">
+                            <p class="text-md text-gray-300"><strong>${params.type === 'movie' ? 'Director' : 'Creator'}:</strong> ${directorOrCreator}</p>
+                            <p class="text-md text-gray-300"><strong>Status:</strong> ${data.status}</p>
+                            ${data.spoken_languages && data.spoken_languages.length > 0 ? `<p class="text-md text-gray-300"><strong>Language:</strong> ${data.spoken_languages[0].english_name}</p>` : ''}
+                        </div>
 
-                        const similarContainer = document.getElementById('similar-movies-container');
-                        renderCards(similarItems, similarContainer);
-                    }
-
-                    if (reviews.length > 0) {
-                        const reviewsSection = document.createElement('div');
-                        reviewsSection.className = 'mt-12';
-                        reviewsSection.innerHTML = `
-                            <h4 class="text-3xl font-bold text-white mb-6">User Reviews</h4>
-                            <div id="user-reviews-container" class="space-y-6"></div>
-                        `;
-                        contentArea.appendChild(reviewsSection);
-
-                        const reviewsContainer = document.getElementById('user-reviews-container');
-                        reviews.forEach(review => {
-                            const reviewCard = document.createElement('div');
-                            reviewCard.className = 'bg-gray-800 p-6 rounded-lg shadow-md';
-                            reviewCard.innerHTML = `
-                                <p class="text-lg font-bold text-yellow-400">By ${review.author}</p>
-                                <p class="text-sm text-gray-400 mt-1">Created on: ${new Date(review.created_at).toLocaleDateString()}</p>
-                                <p class="mt-4 text-justify line-clamp-3">${review.content}</p>
-                                <button class="read-more-button mt-2 text-blue-400 hover:underline text-sm" data-full-content="${encodeURIComponent(review.content)}">Read More</button>
-                            `;
-                            reviewsContainer.appendChild(reviewCard);
-                        });
-
-                        document.querySelectorAll('.read-more-button').forEach(button => {
-                            button.addEventListener('click', (e) => {
-                                const fullContent = decodeURIComponent(e.target.dataset.fullContent);
-                                showModal(fullContent);
-                            });
-                        });
-
-                    } else {
-                        const noReviews = document.createElement('div');
-                        noReviews.className = 'mt-12 text-center text-gray-500';
-                        noReviews.innerHTML = '<p>No user reviews available for this film yet.</p>';
-                        contentArea.appendChild(noReviews);
-                    }
-
-                    const showModal = (content) => {
-                        const modalOverlay = document.createElement('div');
-                        modalOverlay.id = 'modal-overlay';
-                        modalOverlay.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
-                        modalOverlay.innerHTML = `
-                            <div class="bg-gray-800 p-8 rounded-lg shadow-xl max-w-2xl w-full mx-4">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h4 class="text-2xl font-bold text-white">Full Review</h4>
-                                    <button id="close-modal" class="text-gray-400 hover:text-white">&times;</button>
+                        ${trailerUrl ? `
+                            <div class="mb-8">
+                                <h3 class="text-2xl font-bold text-white mb-4">Trailer:</h3>
+                                <div class="aspect-video w-full rounded-lg overflow-hidden shadow-lg">
+                                    <iframe src="${trailerUrl}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full"></iframe>
                                 </div>
-                                <p class="text-gray-300 whitespace-pre-wrap">${content}</p>
                             </div>
-                        `;
-                        document.body.appendChild(modalOverlay);
+                        ` : ''}
 
-                        document.getElementById('close-modal').addEventListener('click', () => {
-                            modalOverlay.remove();
-                        });
-                        modalOverlay.addEventListener('click', (e) => {
-                            if (e.target.id === 'modal-overlay') {
-                                modalOverlay.remove();
-                            }
-                        });
-                    };
-                } catch (error) {
-                    console.error("Failed to fetch movie details:", error);
-                    loadingSpinner.remove();
-                    contentArea.innerHTML = '<p class="text-center text-red-500">Error loading movie details. Please try again.</p>';
+                        <div id="cast-container" class="mb-8">
+                            <h3 class="text-2xl font-bold text-white mb-4">Top Cast:</h3>
+                            <div class="flex overflow-x-auto no-scrollbar pb-4 space-x-4">
+                                ${data.credits && data.credits.cast.length > 0 ?
+                                    data.credits.cast.slice(0, 10).map(cast => `
+                                        <div class="flex-none text-center w-24">
+                                            <img src="${cast.profile_path ? `https://image.tmdb.org/t/p/w200/${cast.profile_path}` : 'https://placehold.co/200x300?text=No+Image'}" alt="${cast.name}" class="w-20 h-20 rounded-full object-cover mx-auto mb-2 border-2 border-gray-600">
+                                            <p class="text-sm text-gray-300 font-semibold truncate">${cast.name}</p>
+                                            <p class="text-xs text-gray-400 truncate">${cast.character}</p>
+                                        </div>
+                                    `).join('')
+                                    : '<p class="text-gray-400">No cast information available.</p>'
+                                }
+                            </div>
+                        </div>
+
+                        <div id="recommendations-container">
+                            <h3 class="text-2xl font-bold text-white mb-4">More Like This:</h3>
+                            <div id="recommendation-cards" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                                ${data.recommendations && data.recommendations.results.length > 0 ?
+                                    data.recommendations.results.slice(0, 12).map(rec => {
+                                        const recTitle = rec.title || rec.name;
+                                        const recPosterUrl = rec.poster_path ? `https://image.tmdb.org/t/p/w200/${rec.poster_path}` : 'https://placehold.co/200x300?text=No+Image';
+                                        const recMediaType = rec.media_type || (rec.title ? 'movie' : 'tv');
+                                        const recUrlTitle = recTitle.replace(/ /g, '-').toLowerCase().replace(/[^a-z0-9-]/g, '');
+
+                                        return `
+                                            <div class="bg-gray-800 rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300 cursor-pointer recommendation-card" 
+                                                 data-type="${recMediaType}" data-id="${rec.id}" data-title="${recTitle}">
+                                                <img src="${recPosterUrl}" alt="Poster for ${recTitle}" class="w-full h-auto object-cover">
+                                                <div class="p-2">
+                                                    <h4 class="text-md font-bold text-white truncate">${recTitle}</h4>
+                                                    <p class="text-xs text-gray-400 mt-1">Rating: ${rec.vote_average.toFixed(1)}</p>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }).join('')
+                                    : '<p class="text-gray-400">No recommendations available.</p>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Add event listeners for genre badges
+                document.querySelectorAll('.genre-badge').forEach(badge => {
+                    badge.addEventListener('click', (e) => {
+                        const genreId = e.target.dataset.genreId;
+                        const genreName = e.target.dataset.genreName;
+                        const urlGenreName = genreName.replace(/ /g, '-').toLowerCase().replace(/[^a-z0-9-]/g, ''); // Simple slug
+                        history.pushState(null, '', `/genre/${params.type}/${genreId}/${urlGenreName}`);
+                        updateState({ currentView: 'list', listParams: { fetchType: 'genre', type: params.type, id: genreId, title: `Genre: ${genreName}` }, currentPage: 1 });
+                    });
+                });
+
+                // Add event listeners for recommendation cards
+                document.querySelectorAll('.recommendation-card').forEach(card => {
+                    card.addEventListener('click', (e) => {
+                        const recType = e.currentTarget.dataset.type;
+                        const recId = e.currentTarget.dataset.id;
+                        const recTitle = e.currentTarget.dataset.title;
+                        const recUrlTitle = recTitle.replace(/ /g, '-').toLowerCase().replace(/[^a-z0-9-]/g, '');
+                        history.pushState(null, '', `/details/${recType}/${recId}/${recUrlTitle}`);
+                        updateState({ currentView: 'details', detailsParams: { type: recType, id: recId, title: recTitle } });
+                    });
+                });
+            };
+
+            const showSearchResults = async (query) => {
+                clearContent();
+                state.currentView = 'search';
+                state.searchQuery = query;
+
+                contentArea.innerHTML = `
+                    <h2 class="text-3xl font-bold text-white mb-6">Search results for "${query}"</h2>
+                    <div id="search-results-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"></div>
+                    <div id="load-more-spinner" class="text-center py-4 hidden">
+                        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto"></div>
+                    </div>
+                `;
+
+                const searchResultsContainer = document.getElementById('search-results-container');
+                renderCardSkeletons(searchResultsContainer, 20); // Render initial skeletons
+
+                await fetchAndRenderSearchResults(searchResultsContainer);
+            };
+
+            const fetchAndRenderSearchResults = async (container) => {
+                if (state.isFetching || state.currentPage > state.totalPages) return;
+
+                state.isFetching = true;
+                const loadMoreSpinner = document.getElementById('load-more-spinner');
+                if (loadMoreSpinner) loadMoreSpinner.classList.remove('hidden');
+
+                const data = await fetchApi('/search/multi', { query: state.searchQuery, page: state.currentPage });
+                
+                if (data) {
+                    state.totalPages = data.total_pages;
+                    renderCards(data.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv'), container, true); // Append cards
+                    state.currentPage++;
+                }
+                state.isFetching = false;
+                if (loadMoreSpinner) loadMoreSpinner.classList.add('hidden');
+            };
+
+            // #############################################
+            // STATE MANAGEMENT
+            // #############################################
+
+            const updateState = (newState) => {
+                Object.assign(state, newState);
+                renderView();
+            };
+
+            const renderView = () => {
+                switch (state.currentView) {
+                    case 'home':
+                        showHomePage();
+                        break;
+                    case 'list':
+                        showListingsPage(state.listParams);
+                        break;
+                    case 'details':
+                        showDetails(state.detailsParams);
+                        break;
+                    case 'search':
+                        showSearchResults(state.searchQuery);
+                        break;
+                    default:
+                        showHomePage();
+                        break;
                 }
             };
-            
+
             // #############################################
             // ROUTING & EVENT LISTENERS
             // #############################################
 
-            const handleUrlHash = () => {
-                const hash = window.location.hash.slice(1);
-                if (!hash) {
+            const handleHistoryChange = () => {
+                const path = window.location.pathname;
+                const pathSegments = path.slice(1).split('/'); // Remove leading slash and split
+
+                // Default to home if path is empty or just '/'
+                if (!pathSegments[0] || pathSegments[0] === '') {
                     updateState({ currentView: 'home' });
                     return;
                 }
 
-                // Split the hash and decode the title
-                const [view, type, id, ...titleParts] = hash.split('/');
-                const title = decodeURIComponent(titleParts.join('/'));
-                
+                const [view, type, id, ...titleParts] = pathSegments;
+                // Join back parts and replace hyphens with spaces for the title
+                const title = titleParts.join(' ').replace(/-/g, ' '); 
+
                 switch(view) {
                     case 'content':
                         updateState({
@@ -613,20 +624,24 @@
                     case 'details':
                         updateState({
                             currentView: 'details',
-                            detailsParams: { type, id, title }
+                            detailsParams: { type, id, title },
+                            currentPage: 1 // Reset page for details view
                         });
                         break;
                     case 'genre':
                         updateState({
                             currentView: 'list',
-                            listParams: { fetchType: 'genre', type, id, title: `Film Genre: ${title}` },
+                            listParams: { fetchType: 'genre', type, id, title: `Genre: ${title}` },
                             currentPage: 1
                         });
                         break;
                     case 'search':
+                        // Use the URL segment directly for the search query, as spaces are replaced with hyphens
+                        const searchQueryFromUrl = type.replace(/-/g, ' ');
                         updateState({
                             currentView: 'search',
-                            searchQuery: type
+                            searchQuery: searchQueryFromUrl, 
+                            currentPage: 1
                         });
                         break;
                     default:
@@ -634,45 +649,99 @@
                         break;
                 }
             };
-            
-            homeLink.addEventListener('click', () => {
-                window.location.hash = '';
+
+            // Mobile menu toggle
+            mobileMenuButton.addEventListener('click', () => {
+                mobileNavigationMenu.classList.toggle('hidden');
+            });
+
+            mobileMoviesDropdownBtn.addEventListener('click', () => {
+                mobileMoviesDropdownMenu.classList.toggle('hidden');
+                mobileTvShowsDropdownMenu.classList.add('hidden'); // Close other dropdown
+            });
+
+            mobileTvShowsDropdownBtn.addEventListener('click', () => {
+                mobileTvShowsDropdownMenu.classList.toggle('hidden');
+                mobileMoviesDropdownMenu.classList.add('hidden'); // Close other dropdown
+            });
+
+            homeLink.addEventListener('click', (e) => {
+                e.preventDefault(); // Prevent default link behavior
+                history.pushState(null, '', '/'); // Push root state
+                updateState({ currentView: 'home' }); // Manually update state
             });
 
             searchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const query = searchInput.value;
                 if (query) {
-                    window.location.hash = `search/${encodeURIComponent(query)}`;
+                    const urlQuery = query.replace(/ /g, '-').toLowerCase().replace(/[^a-z0-9-]/g, '');
+                    history.pushState(null, '', `/search/${urlQuery}`);
+                    updateState({ currentView: 'search', searchQuery: query }); // Use original query for actual search
                 }
             });
 
-            document.querySelectorAll('#movies-dropdown-menu button').forEach(button => {
+            mobileSearchForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const query = mobileSearchInput.value;
+                if (query) {
+                    const urlQuery = query.replace(/ /g, '-').toLowerCase().replace(/[^a-z0-9-]/g, '');
+                    history.pushState(null, '', `/search/${urlQuery}`);
+                    updateState({ currentView: 'search', searchQuery: query });
+                    mobileNavigationMenu.classList.add('hidden'); // Hide mobile menu after search
+                }
+            });
+
+            document.querySelectorAll('#movies-dropdown-menu button, #mobile-movies-dropdown-menu button').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} Movies`;
-                    window.location.hash = `content/${type}/${category}/${encodeURIComponent(title)}`;
+                    const urlTitle = title.replace(/ /g, '-').toLowerCase().replace(/[^a-z0-9-]/g, '');
+                    history.pushState(null, '', `/content/${type}/${category}/${urlTitle}`);
+                    updateState({ currentView: 'list', listParams: { fetchType: 'category', type, id: category, title }, currentPage: 1 });
+                    mobileNavigationMenu.classList.add('hidden'); // Hide mobile menu
                 });
             });
 
-            document.querySelectorAll('#tv-shows-dropdown-menu button').forEach(button => {
+            document.querySelectorAll('#tv-shows-dropdown-menu button, #mobile-tv-shows-dropdown-menu button').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} Tv Shows`;
-                    window.location.hash = `content/${type}/${category}/${encodeURIComponent(title)}`;
+                    const urlTitle = title.replace(/ /g, '-').toLowerCase().replace(/[^a-z0-9-]/g, '');
+                    history.pushState(null, '', `/content/${type}/${category}/${urlTitle}`);
+                    updateState({ currentView: 'list', listParams: { fetchType: 'category', type, id: category, title }, currentPage: 1 });
+                    mobileNavigationMenu.classList.add('hidden'); // Hide mobile menu
                 });
             });
+
+            // Infinite scrolling for listings and search results
+            window.addEventListener('scroll', () => {
+                if (state.currentView === 'list' || state.currentView === 'search') {
+                    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+                    const isScrollingDown = scrollTop > state.lastScrollTop;
+                    state.lastScrollTop = scrollTop;
+
+                    // Load more when scrolled to bottom and scrolling down
+                    if (isScrollingDown && (scrollTop + clientHeight >= scrollHeight - 200) && !state.isFetching && state.currentPage <= state.totalPages) {
+                        const container = state.currentView === 'list' ? document.getElementById('listing-container') : document.getElementById('search-results-container');
+                        if (container) { // Ensure container exists before fetching
+                            if (state.currentView === 'list') {
+                                fetchAndRenderList(container);
+                            } else if (state.currentView === 'search') {
+                                fetchAndRenderSearchResults(container);
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Initial load based on current path
+            handleHistoryChange();
             
-            // Initial load based on hash
-            if (!window.location.hash) {
-                window.location.hash = 'content/movie/now_playing/Now%20Playing%20Movies';
-            } else {
-                handleUrlHash();
-            }
-            
-            window.addEventListener('hashchange', handleUrlHash);
+            // Listen for popstate event (browser back/forward buttons)
+            window.addEventListener('popstate', handleHistoryChange);
         });
     </script>
 </body>

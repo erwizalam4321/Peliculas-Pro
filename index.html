@@ -65,7 +65,7 @@
     <!-- Header -->
     <header class="bg-gray-800 shadow-lg py-4 px-6 md:px-10 flex flex-col md:flex-row items-center justify-between z-10 sticky top-0">
         <div class="flex items-center w-full md:w-auto justify-between md:justify-start mb-4 md:mb-0">
-            <a href="/" class="text-3xl font-extrabold rainbow-text-header mr-6" id="home-link">Peliculas Pro</a>
+            <a href="#" class="text-3xl font-extrabold rainbow-text-header mr-6" id="home-link">Peliculas Pro</a>
             <!-- Dropdown for Mobile -->
             <div class="md:hidden">
                 <button id="mobile-menu-button" class="text-white focus:outline-none">
@@ -73,7 +73,7 @@
                 </button>
             </div>
         </div>
-        
+
         <!-- Mobile Navigation Menu -->
         <nav id="mobile-navigation-menu" class="hidden md:hidden w-full text-center">
             <ul class="flex flex-col items-center space-y-4 py-4">
@@ -152,7 +152,11 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // ** Perbaikan: Menggunakan URL proxy baru dan menghapus API Key **
-            const BASE_URL = 'https://tmdb-api-proxy-1.musadekakhmad.workers.dev/';
+            // Use the user-provided proxy URL directly.
+            const BASE_URL = 'https://tmdb-api-proxy-1.musadekakhmad.workers.dev/3';
+            const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+            const BACKDROP_BASE_URL = 'https://image.tmdb.org/t/p/original';
+            const PLACEHOLDER_IMG_URL = 'https://placehold.co/500x750?text=No+Image';
 
             // Element DOM
             const contentArea = document.getElementById('content-area');
@@ -194,19 +198,22 @@
                 loadingSpinner.classList.add('hidden');
             };
 
-            // ** Perbaikan: Menghapus `api_key` dari parameter URL **
+            // ** Perbaikan: Menambahkan penanganan error yang lebih baik di sini **
             const fetchApi = async (path, params = {}) => {
                 showLoading();
-                const urlParams = new URLSearchParams(params); // Tidak perlu API Key di sini
+                const urlParams = new URLSearchParams(params);
                 try {
                     const response = await fetch(`${BASE_URL}${path}?${urlParams.toString()}`);
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        const errorText = await response.text();
+                        console.error(`HTTP error! status: ${response.status}`, errorText);
+                        throw new Error(`API returned an error: ${response.status} - ${errorText}`);
                     }
                     return await response.json();
                 } catch (error) {
                     console.error("Error fetching data:", error);
-                    contentArea.innerHTML = `<p class="text-red-500 text-center">Failed to load content. Please try again later.</p>`;
+                    // Menampilkan pesan error yang ramah pengguna
+                    contentArea.innerHTML = `<p class="text-red-500 text-center text-xl mt-10">Failed to load content. Please try again later. (Error: ${error.message})</p>`;
                     return null;
                 } finally {
                     hideLoading();
@@ -227,6 +234,7 @@
             };
 
             const renderCardSkeletons = (container, count) => {
+                container.innerHTML = '';
                 for (let i = 0; i < count; i++) {
                     container.appendChild(createCardSkeleton());
                 }
@@ -262,7 +270,7 @@
 
                     const title = item.title || item.name;
                     const posterPath = item.poster_path;
-                    const posterUrl = posterPath ? `https://image.tmdb.org/t/p/w500/${posterPath}` : 'https://placehold.co/500x750?text=No+Image';
+                    const posterUrl = posterPath ? `${IMAGE_BASE_URL}${posterPath}` : PLACEHOLDER_IMG_URL;
 
                     const card = document.createElement('div');
                     card.className = 'bg-gray-800 rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300 cursor-pointer';
@@ -326,7 +334,7 @@
                         <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto"></div>
                     </div>
                 `;
-                
+
                 const listingContainer = document.getElementById('listing-container');
                 renderCardSkeletons(listingContainer, 20); // Render initial skeletons
 
@@ -350,8 +358,8 @@
                         page: state.currentPage
                     });
                 }
-                
-                if (data) {
+
+                if (data && data.results) {
                     state.totalPages = data.total_pages;
                     renderCards(data.results, container, true); // Append cards
                     state.currentPage++;
@@ -387,15 +395,14 @@
                 const data = await fetchApi(`/${params.type}/${params.id}`, { append_to_response: 'credits,videos,recommendations' });
 
                 if (!data) {
-                    contentArea.innerHTML = `<p class="text-red-500 text-center">Failed to load details for ${params.title}.</p>`;
                     return;
                 }
 
                 const title = data.title || data.name;
                 const posterPath = data.poster_path;
-                const posterUrl = posterPath ? `https://image.tmdb.org/t/p/w500/${posterPath}` : 'https://placehold.co/500x750?text=No+Image';
+                const posterUrl = posterPath ? `${IMAGE_BASE_URL}${posterPath}` : PLACEHOLDER_IMG_URL;
                 const backdropPath = data.backdrop_path;
-                const backdropUrl = backdropPath ? `https://image.tmdb.org/t/p/original/${backdropPath}` : '';
+                const backdropUrl = backdropPath ? `${BACKDROP_BASE_URL}${backdropPath}` : '';
 
                 // Extract director (for movies) or creator (for TV)
                 let directorOrCreator = 'N/A';
@@ -429,7 +436,7 @@
                     <div class="lg:w-2/3 mt-6 lg:mt-0">
                         <h2 class="text-4xl font-extrabold text-white mb-2">${title}</h2>
                         <p class="text-lg text-gray-300 mb-4">${data.tagline || ''}</p>
-                        
+
                         <div class="flex items-center space-x-4 mb-4">
                             <p class="text-xl font-bold text-yellow-400">⭐ ${data.vote_average ? data.vote_average.toFixed(1) : 'N/A'}</p>
                             <p class="text-md text-gray-400">${params.type === 'movie' ? (data.release_date ? data.release_date.substring(0, 4) : 'N/A') : (data.first_air_date ? data.first_air_date.substring(0, 4) : 'N/A')}</p>
@@ -467,7 +474,7 @@
                                 ${data.credits && data.credits.cast.length > 0 ?
                                     data.credits.cast.slice(0, 10).map(cast => `
                                         <div class="flex-none text-center w-24">
-                                            <img src="${cast.profile_path ? `https://image.tmdb.org/t/p/w200/${cast.profile_path}` : 'https://placehold.co/200x300?text=No+Image'}" alt="${cast.name}" class="w-20 h-20 rounded-full object-cover mx-auto mb-2 border-2 border-gray-600">
+                                            <img src="${cast.profile_path ? `${IMAGE_BASE_URL.replace('w500', 'w200')}${cast.profile_path}` : 'https://placehold.co/200x300?text=No+Image'}" alt="${cast.name}" class="w-20 h-20 rounded-full object-cover mx-auto mb-2 border-2 border-gray-600">
                                             <p class="text-sm text-gray-300 font-semibold truncate">${cast.name}</p>
                                             <p class="text-xs text-gray-400 truncate">${cast.character}</p>
                                         </div>
@@ -483,12 +490,12 @@
                                 ${data.recommendations && data.recommendations.results.length > 0 ?
                                     data.recommendations.results.slice(0, 12).map(rec => {
                                         const recTitle = rec.title || rec.name;
-                                        const recPosterUrl = rec.poster_path ? `https://image.tmdb.org/t/p/w200/${rec.poster_path}` : 'https://placehold.co/200x300?text=No+Image';
+                                        const recPosterUrl = rec.poster_path ? `${IMAGE_BASE_URL.replace('w500', 'w200')}${rec.poster_path}` : 'https://placehold.co/200x300?text=No+Image';
                                         const recMediaType = rec.media_type || (rec.title ? 'movie' : 'tv');
                                         const recUrlTitle = recTitle.replace(/ /g, '-').toLowerCase().replace(/[^a-z0-9-]/g, '');
 
                                         return `
-                                            <div class="bg-gray-800 rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300 cursor-pointer recommendation-card" 
+                                            <div class="bg-gray-800 rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300 cursor-pointer recommendation-card"
                                                  data-type="${recMediaType}" data-id="${rec.id}" data-title="${recTitle}">
                                                 <img src="${recPosterUrl}" alt="Poster for ${recTitle}" class="w-full h-auto object-cover">
                                                 <div class="p-2">
@@ -556,8 +563,8 @@
                 if (loadMoreSpinner) loadMoreSpinner.classList.remove('hidden');
 
                 const data = await fetchApi('/search/multi', { query: state.searchQuery, page: state.currentPage });
-                
-                if (data) {
+
+                if (data && data.results) {
                     state.totalPages = data.total_pages;
                     renderCards(data.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv'), container, true); // Append cards
                     state.currentPage++;
@@ -611,7 +618,7 @@
 
                 const [view, type, id, ...titleParts] = pathSegments;
                 // Join back parts and replace hyphens with spaces for the title
-                const title = titleParts.join(' ').replace(/-/g, ' '); 
+                const title = titleParts.join(' ').replace(/-/g, ' ');
 
                 switch(view) {
                     case 'content':
@@ -640,7 +647,7 @@
                         const searchQueryFromUrl = type.replace(/-/g, ' ');
                         updateState({
                             currentView: 'search',
-                            searchQuery: searchQueryFromUrl, 
+                            searchQuery: searchQueryFromUrl,
                             currentPage: 1
                         });
                         break;
@@ -739,7 +746,7 @@
 
             // Initial load based on current path
             handleHistoryChange();
-            
+
             // Listen for popstate event (browser back/forward buttons)
             window.addEventListener('popstate', handleHistoryChange);
         });

@@ -28,12 +28,18 @@
     <meta name="keywords" content="Peliculas Pro, free movies, watch movies online, HD streaming, latest movies, popular movies, no subscription, free entertainment, online cinema, movie streaming site">
     <link rel="canonical" href="https://peliculaspro.netlify.app/">
 
-    <!-- Open Graph Meta Tags for social media sharing -->
+    <!-- Open Graph & Twitter Meta Tags for social media sharing -->
     <meta property="og:title" content="Peliculas Pro - Free HD Movie Streaming">
     <meta property="og:description" content="The best free movie streaming platform. Watch thousands of HD movies for free.">
     <meta property="og:image" content="https://live.staticflickr.com/65535/54698621370_1b976fbd76_b.jpg">
     <meta property="og:url" content="https://peliculaspro.netlify.app/">
     <meta property="og:type" content="website">
+    <meta property="fb:app_id" content="100074345305108">
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:site" content="@ErwizalA84074">
+    <meta property="twitter:title" content="Peliculas Pro - Free HD Movie Streaming">
+    <meta property="twitter:description" content="The best free movie streaming platform. Watch thousands of HD movies for free.">
+
 </head>
 <body class="bg-gray-900 text-gray-200">
     <!-- Header and Navigation -->
@@ -41,7 +47,7 @@
         <!-- New container to match the width of the main content -->
         <div class="container mx-auto px-4 max-w-7xl">
             <nav class="p-4 flex flex-col md:flex-row justify-between items-center">
-                <a href="https://peliculaspro.netlify.app/" class="flex items-center mb-4 md:mb-0">
+                <a href="#" id="home-link" class="flex items-center mb-4 md:mb-0">
                     <!-- Movie Icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400 mr-3" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M18 3H6c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 5h12v14H6V5zm10 12h-2v-2h2v2zM8 7h2v2H8V7zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2z"/>
@@ -50,7 +56,7 @@
                 </a>
                 <!-- Navigation links and dropdowns -->
                 <div class="flex items-center space-x-4">
-                    <a href="https://peliculaspro.netlify.app/" class="text-white hover:text-red-500 hover:font-bold transition-colors duration-300">Home</a>
+                    <a href="#" class="text-white hover:text-red-500 hover:font-bold transition-colors duration-300">Home</a>
                     <div class="relative group">
                         <button id="movies-dropdown-button" class="text-white hover:text-blue-500 hover:font-bold transition-colors duration-300 flex items-center">
                             Movies
@@ -85,7 +91,6 @@
     </header>
 
     <!-- Main Content -->
-    <!-- Added max-w-7xl to prevent the layout from becoming too wide on large screens -->
     <main id="main-content" class="container mx-auto px-4 py-8 max-w-7xl">
         <!-- Main Banner Image -->
         <div id="hero-section" class="mb-8 rounded-lg overflow-hidden shadow-lg">
@@ -93,7 +98,6 @@
         </div>
 
         <!-- Main Heading -->
-        <!-- Responsive font sizes using Tailwind's `text-3xl` and `md:text-4xl` to match the header -->
         <h1 id="main-heading" class="text-3xl md:text-4xl font-extrabold text-white mb-6 leading-tight flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-yellow-400 mr-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M18 3H6c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 5h12v14H6V5zm10 12h-2v-2h2v2zM8 7h2v2H8V7zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2z"/>
@@ -118,11 +122,13 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const apiKey = 'tmdb-api-proxy.argoyuwono119.workers.dev';
-            const mainContent = document.getElementById('main-content');
             const contentArea = document.getElementById('content-area');
             const heroSection = document.getElementById('hero-section');
             const introSection = document.getElementById('intro-section');
             const mainHeading = document.getElementById('main-heading');
+
+            // Set to keep track of rendered item IDs to prevent duplicates
+            const renderedItemIds = new Set();
             
             // Function to fetch content from TMDB API
             const fetchContent = async (type, category, page = 1) => {
@@ -145,7 +151,7 @@
                     const data = await response.json();
                     return data.results;
                 } catch (error) {
-            console.error('Error fetching data by genre:', error);
+                    console.error('Error fetching data by genre:', error);
                     return [];
                 }
             };
@@ -153,6 +159,12 @@
             // Function to render movie/TV show cards
             const renderCards = (items, container, type) => {
                 items.forEach(item => {
+                    // Check if the item has already been rendered. If so, skip it.
+                    if (renderedItemIds.has(item.id)) {
+                        return;
+                    }
+                    renderedItemIds.add(item.id);
+
                     const title = item.title || item.name;
                     const posterPath = item.poster_path;
                     const posterUrl = posterPath ? `https://image.tmdb.org/t/p/w500/${posterPath}` : 'https://placehold.co/500x750?text=No+Image';
@@ -167,9 +179,9 @@
                         </div>
                     `;
 
-                    // Add click event listener to each card
+                    // Update: Now we change the URL hash instead of calling a function directly
                     card.addEventListener('click', () => {
-                        showDetails(type, item.id);
+                        window.location.hash = `details/${type}/${item.id}`;
                     });
 
                     container.appendChild(card);
@@ -178,16 +190,22 @@
 
             // Function to handle showing the dynamic content list (for both category and genre)
             const showDynamicContent = async (fetchType, type, id, title) => {
-                // Clear existing content and hide static sections
+                // Clear existing content, hide static sections, and reset rendered items
                 contentArea.innerHTML = '';
+                renderedItemIds.clear(); // Reset the set for new content
                 heroSection.classList.add('hidden');
                 introSection.classList.add('hidden');
-                // Mengubah ukuran font agar sesuai dengan header
+                
+                // Update the main heading
                 mainHeading.innerHTML = `<h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">${title}</h2>`;
 
                 let currentPage = 1;
-                const totalItemsToShow = 12;
+                const itemsContainer = document.createElement('div');
+                // The responsive grid classes: `grid-cols-2` for mobile, `sm:grid-cols-3` for small screens, and `lg:grid-cols-4` for large screens
+                itemsContainer.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6';
+                contentArea.appendChild(itemsContainer);
 
+                // Fetch and render initial items
                 let initialItems;
                 if (fetchType === 'category') {
                     initialItems = await fetchContent(type, id, currentPage);
@@ -195,13 +213,8 @@
                     initialItems = await fetchByGenre(type, id, currentPage);
                 }
 
-                const itemsContainer = document.createElement('div');
-                // The responsive grid classes: `grid-cols-2` for mobile, `sm:grid-cols-3` for small screens, and `lg:grid-cols-4` for large screens
-                itemsContainer.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6';
-                contentArea.appendChild(itemsContainer);
-
                 if (initialItems.length > 0) {
-                    renderCards(initialItems.slice(0, totalItemsToShow), itemsContainer, type);
+                    renderCards(initialItems, itemsContainer, type);
 
                     const loadMoreButton = document.createElement('button');
                     loadMoreButton.className = 'mt-8 mx-auto block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-transform duration-300 transform hover:scale-105';
@@ -217,7 +230,7 @@
                         }
 
                         if (moreItems.length > 0) {
-                             renderCards(moreItems.slice(0, totalItemsToShow), itemsContainer, type);
+                            renderCards(moreItems, itemsContainer, type);
                         } else {
                             loadMoreButton.textContent = 'No More Items';
                             loadMoreButton.disabled = true;
@@ -270,7 +283,8 @@
                 const backButton = document.createElement('button');
                 backButton.className = 'bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 mb-6';
                 backButton.innerHTML = '← Back';
-                backButton.addEventListener('click', () => window.location.reload()); // Reloads the page to show the initial content
+                // Update: Use browser history instead of reloading the page
+                backButton.addEventListener('click', () => history.back());
                 contentArea.appendChild(backButton);
 
                 // Build the detail view
@@ -288,6 +302,7 @@
                 let genreLinks = '';
                 if (details.genres && details.genres.length > 0) {
                     genreLinks = details.genres.map(g => 
+                        // Update: Genre links now also change the URL hash
                         `<span class="genre-link cursor-pointer text-blue-400 hover:text-blue-200 hover:underline" data-genre-id="${g.id}" data-genre-name="${g.name}">${g.name}</span>`
                     ).join(', ');
                 } else {
@@ -387,7 +402,7 @@
                     link.addEventListener('click', (e) => {
                         const genreId = e.target.dataset.genreId;
                         const genreName = e.target.dataset.genreName;
-                        showDynamicContent('genre', type, genreId, `Film Genre: ${genreName}`);
+                        window.location.hash = `genre/${type}/${genreId}/${genreName}`;
                     });
                 });
 
@@ -444,7 +459,7 @@
                     // Add event listeners for "Read More" buttons
                     document.querySelectorAll('.read-more-button').forEach(button => {
                         button.addEventListener('click', (e) => {
-                            const fullContent = decodeURIComponent(e.target.dataset.fullContent);
+                            const fullContent = decodeURIComponent(e.target.dataset.full-content);
                             // Using a custom modal for better UX instead of alert()
                             showModal(fullContent);
                         });
@@ -484,13 +499,49 @@
                 };
             };
             
+            // Function to handle URL hash changes and initial page load
+            const handleUrlHash = () => {
+                const hash = window.location.hash.slice(1); // Remove the #
+                if (!hash) {
+                    // Show default view
+                    heroSection.classList.remove('hidden');
+                    introSection.classList.remove('hidden');
+                    mainHeading.classList.remove('hidden');
+                    mainHeading.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-yellow-400 mr-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18 3H6c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 5h12v14H6V5zm10 12h-2v-2h2v2zM8 7h2v2H8V7zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2z"/>
+                        </svg>
+                        Welcome to Peliculas Pro: Your Ultimate Destination for the Best Free Movie Streaming
+                    `;
+                    contentArea.innerHTML = '';
+                    return;
+                }
+
+                const [view, type, id, ...rest] = hash.split('/');
+                // Use decodeURIComponent() to correctly parse the title
+                const title = decodeURIComponent(rest.join(' '));
+                
+                if (view === 'content' && type && id) {
+                    showDynamicContent('category', type, id, title);
+                } else if (view === 'details' && type && id) {
+                    showDetails(type, id);
+                } else if (view === 'genre' && type && id && title) {
+                    showDynamicContent('genre', type, id, `Film Genre: ${title}`);
+                }
+            };
+            
+            // Event listener for the main title to go back to home page
+            document.getElementById('home-link').addEventListener('click', () => {
+                window.location.hash = ''; // Set hash to empty to trigger home view
+            });
+
             // Event listeners for dropdown buttons
             document.querySelectorAll('#movies-dropdown-menu button').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} Movies`;
-                    showDynamicContent('category', type, category, title);
+                    window.location.hash = `content/${type}/${category}/${title}`;
                 });
             });
 
@@ -499,9 +550,20 @@
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} Tv Shows`;
-                    showDynamicContent('category', type, category, title);
+                    window.location.hash = `content/${type}/${category}/${title}`;
                 });
             });
+
+            // Check if hash is empty on initial load, if so, set to Now Playing Movies
+            if (!window.location.hash) {
+                window.location.hash = 'content/movie/now_playing/Now Playing Movies';
+            }
+
+            // Initial call to handle the URL hash on page load
+            handleUrlHash();
+            
+            // Listen for hash changes
+            window.addEventListener('hashchange', handleUrlHash);
         });
     </script>
 </body>

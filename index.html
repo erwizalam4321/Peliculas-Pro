@@ -138,7 +138,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // #############################################
-            // API KEY CONFIGURATION
+            // API KEY CONFIGURATION (UPDATED)
             // #############################################
             // A list of available API keys/proxies. The application will try the first one,
             // and if it fails, it will fall back to the next one.
@@ -151,6 +151,7 @@
             // #############################################
             // CENTRALIZED STATE MANAGEMENT
             // #############################################
+
             const contentArea = document.getElementById('content-area');
             const heroSection = document.getElementById('hero-section');
             const introSection = document.getElementById('intro-section');
@@ -280,13 +281,9 @@
                         </div>
                     `;
 
+                    // Update the click handler to include the movie title in the hash
                     card.addEventListener('click', () => {
-                        const cleanTitle = title.replace(/ /g, '-');
-                        history.pushState(null, '', `/details/${mediaType}/${item.id}/${encodeURIComponent(cleanTitle)}`);
-                        updateState({
-                            currentView: 'details',
-                            detailsParams: { type: mediaType, id: item.id, title: title },
-                        });
+                        window.location.hash = `details/${mediaType}/${item.id}/${encodeURIComponent(title)}`;
                     });
 
                     container.appendChild(card);
@@ -331,18 +328,19 @@
                             loadMoreButton.disabled = true;
                         }
                     });
+
                     contentArea.appendChild(loadMoreButton);
                 } else {
                     contentArea.innerHTML = '<p class="text-center text-gray-500">No content found.</p>';
                 }
             };
-
+            
             const showSearchResults = async (query) => {
-                const decodedQuery = decodeURIComponent(query);
-                mainHeading.innerHTML = `<h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">Search Results for: "${decodedQuery}"</h2>`;
+                mainHeading.innerHTML = `<h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">Search Results for: "${decodeURIComponent(query)}"</h2>`;
                 mainHeading.classList.remove('hidden');
 
-                const searchResults = await fetchSearchResults(decodedQuery);
+                const searchResults = await fetchSearchResults(query);
+
                 if (searchResults && searchResults.length > 0) {
                     const itemsContainer = document.createElement('div');
                     itemsContainer.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6';
@@ -352,15 +350,15 @@
                     contentArea.innerHTML = '<p class="text-center text-gray-500">No results found for your search.</p>';
                 }
             };
-            
-            const showDetails = async (type, id) => {
+
+            const showDetails = async (type, id, titleFromHash) => {
                 const loadingSpinner = document.createElement('div');
                 loadingSpinner.className = 'flex justify-center items-center h-64';
                 loadingSpinner.innerHTML = `
                     <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
                 `;
                 contentArea.appendChild(loadingSpinner);
-
+                
                 try {
                     const [details, videosData, creditsData, similarData, reviewsData] = await Promise.all([
                         safeFetch(`/${type}/${id}`),
@@ -369,7 +367,7 @@
                         safeFetch(`/${type}/${id}/similar`),
                         safeFetch(`/${type}/${id}/reviews`)
                     ]);
-                    
+
                     loadingSpinner.remove();
 
                     const backButton = document.createElement('button');
@@ -384,174 +382,268 @@
                     const similarItems = similarData.results.slice(0, 6);
                     const reviews = reviewsData.results.slice(0, 5);
 
+                    const detailContainer = document.createElement('div');
+                    detailContainer.className = 'grid grid-cols-1 md:grid-cols-3 gap-8';
+
                     const posterPath = details.poster_path;
                     const posterUrl = posterPath ? `https://image.tmdb.org/t/p/w500/${posterPath}` : 'https://placehold.co/500x750?text=No+Image';
 
-                    // Buat string HTML untuk judul asli secara kondisional
-                    const originalTitleHtml = (details.original_title && details.original_title !== (details.title || details.name)) ?
-                        `<h2 class="text-xl text-gray-400 mb-4 italic">${details.original_title}</h2>` : '';
+                    const originalTitle = (details.title || details.name) !== details.original_title ? details.original_title : '';
 
                     let genreLinks = '';
                     if (details.genres && details.genres.length > 0) {
-                        genreLinks = details.genres.map(g => `<span class="genre-link cursor-pointer text-blue-400 hover:text-blue-200 hover:underline" data-genre-id="${g.id}" data-genre-name="${g.name}">${g.name}</span>` ).join(', ');
+                        genreLinks = details.genres.map(g => 
+                            `<span class="genre-link cursor-pointer text-blue-400 hover:text-blue-200 hover:underline" data-genre-id="${g.id}" data-genre-name="${g.name}">${g.name}</span>`
+                        ).join(', ');
                     } else {
                         genreLinks = 'N/A';
                     }
 
-                    // Gabungkan semua string HTML menjadi satu dan atur innerHTML sekali
-                    const detailHtml = `
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div class="md:col-span-1">
-                                <img src="${posterUrl}" alt="Poster for ${details.title || details.name}" class="rounded-lg shadow-xl w-full">
-                            </div>
-                            <div class="md:col-span-2">
-                                <h1 class="text-5xl font-extrabold text-white mb-2">${details.title || details.name}</h1>
-                                ${originalTitleHtml}
-                                <p class="text-yellow-400 font-bold text-xl mb-4">Rating: ${details.vote_average.toFixed(1)}/10</p>
-                                <p class="text-gray-300 mb-4 text-justify">${details.overview || 'No overview available.'}</p>
-                                <div class="space-y-2 mb-6">
-                                    <p class="text-gray-400"><span class="font-bold text-white">Genre:</span> ${genreLinks}</p>
-                                    <p class="text-gray-400"><span class="font-bold text-white">Release Date:</span> ${details.release_date || details.first_air_date || 'N/A'}</p>
-                                    <p class="text-gray-400"><span class="font-bold text-white">Director:</span> ${director ? director.name : 'N/A'}</p>
-                                    <p class="text-gray-400"><span class="font-bold text-white">Main Cast:</span> ${cast || 'N/A'}</p>
+                    detailContainer.innerHTML = `
+                        <div class="md:col-span-1">
+                            <img src="${posterUrl}" alt="Poster for ${details.title || details.name}" class="rounded-lg shadow-xl w-full">
+                        </div>
+                        <div class="md:col-span-2">
+                            <h1 class="text-5xl font-extrabold text-white mb-2">${details.title || details.name}</h1>
+                            ${originalTitle ? `<p class="text-xl text-gray-400 italic mb-6">(${originalTitle})</p>` : ''}
+                            <p class="text-lg text-gray-400 mb-6">${details.tagline || ''}</p>
+                            
+                            <h2 class="text-2xl font-bold text-yellow-400 mb-4">Film Details</h2>
+                            <div class="text-gray-300 space-y-4 mb-6">
+                                <!-- Detail for Overview -->
+                                <div class="flex flex-col">
+                                    <p class="flex items-center mb-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-2 2a2 2 0 11-4 0 2 2 0 014 0zm-4 0v1.5c0 .65.34 1.27.94 1.62m4.12-1.62v1.5c0 .65-.34 1.27-.94 1.62M11 20h1.5a1.5 1.5 0 000-3H11V20z" />
+                                        </svg>
+                                        <strong class="font-bold text-white">Overview:</strong>
+                                    </p>
+                                    <p class="ml-8 text-gray-300 text-justify">${details.overview || 'N/A'}</p>
                                 </div>
-                                ${trailer ? `
-                                    <div class="mb-6">
-                                        <h3 class="text-2xl font-bold text-white mb-3">Trailer</h3>
-                                        <div class="aspect-w-16 aspect-h-9 overflow-hidden rounded-lg shadow-lg">
-                                            <iframe class="w-full h-full" src="https://www.youtube.com/embed/${trailer.key}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                                        </div>
-                                    </div>
-                                ` : ''}
-                                <div id="reviews-section">
-                                    <h3 class="text-2xl font-bold text-white mb-3">Reviews</h3>
-                                    ${reviews.length > 0 ? reviews.map(review => `
-                                        <div class="bg-gray-700 p-4 rounded-lg shadow-md mb-4">
-                                            <p class="font-bold text-white">${review.author}</p>
-                                            <p class="text-gray-400 text-sm italic">Rating: ${review.author_details.rating ? `${review.author_details.rating}/10` : 'N/A'}</p>
-                                            <p class="text-gray-300 mt-2">${review.content.substring(0, 300)}...</p>
-                                        </div>
-                                    `).join('') : '<p class="text-gray-500">No reviews available.</p>'}
+
+                                <!-- Detail for Release Date -->
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h.01M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <strong class="font-bold text-white">Release Date:</strong> <span class="ml-2">${details.release_date || details.first_air_date || 'N/A'}</span>
+                                </div>
+
+                                <!-- Detail for Rating -->
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-400 mr-2 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                    </svg>
+                                    <strong class="font-bold text-white">Rating:</strong> <span class="ml-2">${details.vote_average.toFixed(1)} / 10 (${details.vote_count} votes)</span>
+                                </div>
+
+                                <!-- Detail for Genres -->
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h18M3 12h18M3 16h18M7 8v8M17 8v8" />
+                                    </svg>
+                                    <strong class="font-bold text-white">Genres:</strong> <span class="ml-2">${genreLinks}</span>
+                                </div>
+
+                                <!-- Detail for Director -->
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-pink-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10.5a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.5 12a4.5 4.5 0 00-9 0c0 2.485 1.563 4.536 3.75 5.584V21h1.5v-3.416c2.187-1.048 3.75-3.099 3.75-5.584z" />
+                                    </svg>
+                                    <strong class="font-bold text-white">Director:</strong> <span class="ml-2">${director ? director.name : 'N/A'}</span>
+                                </div>
+
+                                <!-- Detail for Actors -->
+                                <div class="flex flex-col">
+                                    <p class="flex items-center mb-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-cyan-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm0-4c-.552 0-1-.448-1-1s.448-1 1-1 1 .448 1 1-.448 1-1 1z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 17h-1.5a1.5 1.5 0 00-1.5-1.5V21H6v-2.5a1.5 1.5 0 00-1.5-1.5H3V6a3 3 0 013-3h12a3 3 0 013 3v11z" />
+                                    </svg>
+                                    <strong class="font-bold text-white">Actors:</strong>
+                                    </p>
+                                    <p class="ml-8 text-gray-300">${cast || 'N/A'}</p>
+                                </div>
+
+                                <!-- Detail for Original Language -->
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5.7M9.363 4.463l-2.079 1.77A2.99 2.99 0 006 8.322V15.5c0 1.577.828 3.015 2.188 3.82L10 21.5h4l1.812-2.18c1.36-.805 2.188-2.243 2.188-3.82V8.322a2.99 2.99 0 00-.784-2.137l-2.08-1.77M11.999 4h.001" />
+                                    </svg>
+                                    <strong class="font-bold text-white">Original Language:</strong> <span class="ml-2">${details.original_language.toUpperCase() || 'N/A'}</span>
+                                </div>
+
+                                <!-- Detail for Homepage -->
+                                <div class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172A2 2 0 0012 8V6a2 2 0 10-4 0v2m4 4v2m2 4h4a2 2 0 002-2v-6m-4-2a2 2 0 01-2-2V4a2 2 0 114 0v4m-6 4h4m-2 2v4a2 2 0 104 0v-4" />
+                                    </svg>
+                                    <strong class="font-bold text-white">Homepage:</strong> <span class="ml-2"><a href="${details.homepage}" class="text-blue-400 hover:underline" target="_blank">${details.homepage || 'N/A'}</a></span>
                                 </div>
                             </div>
                         </div>
                     `;
-                    contentArea.innerHTML += detailHtml;
-
-                    // Similar movies section
-                    if (similarItems.length > 0) {
-                        const similarContainer = document.createElement('div');
-                        similarContainer.className = 'mt-12';
-                        similarContainer.innerHTML = `
-                            <h3 class="text-3xl font-bold text-white mb-6">Similar ${type === 'movie' ? 'Movies' : 'TV Shows'}</h3>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6" id="similar-content-area"></div>
-                        `;
-                        contentArea.appendChild(similarContainer);
-                        renderCards(similarItems, document.getElementById('similar-content-area'));
-                    }
+                    
+                    contentArea.appendChild(detailContainer);
                     
                     document.querySelectorAll('.genre-link').forEach(link => {
                         link.addEventListener('click', (e) => {
                             const genreId = e.target.dataset.genreId;
                             const genreName = e.target.dataset.genreName;
-                            const cleanGenreName = genreName.replace(/ /g, '-');
-                            history.pushState(null, '', `/genre/${type}/${genreId}/${encodeURIComponent(cleanGenreName)}`);
-                            updateState({
-                                currentPage: 1,
-                                currentView: 'list',
-                                listParams: { fetchType: 'genre', type: type, id: genreId, title: `Genre: ${decodedGenreName}` }
-                            });
+                            window.location.hash = `genre/${type}/${genreId}/${encodeURIComponent(genreName)}`;
                         });
                     });
 
+                    if (trailer) {
+                        const trailerSection = document.createElement('div');
+                        trailerSection.className = 'w-full mt-12 text-center';
+                        trailerSection.innerHTML = `
+                            <h3 class="text-3xl font-bold text-white mb-6">Trailer</h3>
+                            <div class="relative mx-auto w-full max-w-4xl aspect-video rounded-lg overflow-hidden shadow-xl">
+                                <iframe class="absolute top-0 left-0 w-full h-full" src="https://www.youtube.com/embed/${trailer.key}" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                        `;
+                        contentArea.appendChild(trailerSection);
+                    }
+
+                    if (similarItems.length > 0) {
+                        const similarSection = document.createElement('div');
+                        similarSection.className = 'mt-12';
+                        similarSection.innerHTML = `
+                            <h4 class="text-3xl font-bold text-white mb-6">Similar Movies</h4>
+                            <div id="similar-movies-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4"></div>
+                        `;
+                        contentArea.appendChild(similarSection);
+
+                        const similarContainer = document.getElementById('similar-movies-container');
+                        renderCards(similarItems, similarContainer);
+                    }
+
+                    if (reviews.length > 0) {
+                        const reviewsSection = document.createElement('div');
+                        reviewsSection.className = 'mt-12';
+                        reviewsSection.innerHTML = `
+                            <h4 class="text-3xl font-bold text-white mb-6">User Reviews</h4>
+                            <div id="user-reviews-container" class="space-y-6"></div>
+                        `;
+                        contentArea.appendChild(reviewsSection);
+
+                        const reviewsContainer = document.getElementById('user-reviews-container');
+                        reviews.forEach(review => {
+                            const reviewCard = document.createElement('div');
+                            reviewCard.className = 'bg-gray-800 p-6 rounded-lg shadow-md';
+                            reviewCard.innerHTML = `
+                                <p class="text-lg font-bold text-yellow-400">By ${review.author}</p>
+                                <p class="text-sm text-gray-400 mt-1">Created on: ${new Date(review.created_at).toLocaleDateString()}</p>
+                                <p class="mt-4 text-justify line-clamp-3">${review.content}</p>
+                                <button class="read-more-button mt-2 text-blue-400 hover:underline text-sm" data-full-content="${encodeURIComponent(review.content)}">Read More</button>
+                            `;
+                            reviewsContainer.appendChild(reviewCard);
+                        });
+
+                        document.querySelectorAll('.read-more-button').forEach(button => {
+                            button.addEventListener('click', (e) => {
+                                const fullContent = decodeURIComponent(e.target.dataset.fullContent);
+                                showModal(fullContent);
+                            });
+                        });
+
+                    } else {
+                        const noReviews = document.createElement('div');
+                        noReviews.className = 'mt-12 text-center text-gray-500';
+                        noReviews.innerHTML = '<p>No user reviews available for this film yet.</p>';
+                        contentArea.appendChild(noReviews);
+                    }
+
+                    const showModal = (content) => {
+                        const modalOverlay = document.createElement('div');
+                        modalOverlay.id = 'modal-overlay';
+                        modalOverlay.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+                        modalOverlay.innerHTML = `
+                            <div class="bg-gray-800 p-8 rounded-lg shadow-xl max-w-2xl w-full mx-4">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h4 class="text-2xl font-bold text-white">Full Review</h4>
+                                    <button id="close-modal" class="text-gray-400 hover:text-white">&times;</button>
+                                </div>
+                                <p class="text-gray-300 whitespace-pre-wrap">${content}</p>
+                            </div>
+                        `;
+                        document.body.appendChild(modalOverlay);
+
+                        document.getElementById('close-modal').addEventListener('click', () => {
+                            modalOverlay.remove();
+                        });
+                        modalOverlay.addEventListener('click', (e) => {
+                            if (e.target.id === 'modal-overlay') {
+                                modalOverlay.remove();
+                            }
+                        });
+                    };
                 } catch (error) {
+                    console.error("Failed to fetch movie details:", error);
                     loadingSpinner.remove();
-                    contentArea.innerHTML = `<p class="text-center text-red-500">Error: ${error.message}</p>`;
+                    contentArea.innerHTML = '<p class="text-center text-red-500">Error loading movie details. Please try again.</p>';
                 }
             };
+            
+            // #############################################
+            // ROUTING & EVENT LISTENERS
+            // #############################################
 
-            // #############################################
-            // URL HANDLING (PERBAIKAN)
-            // #############################################
-            const handleUrlChange = () => {
-                const path = window.location.pathname;
-                const pathSegments = path.split('/').filter(segment => segment);
-                
-                if (pathSegments.length === 0) {
+            const handleUrlHash = () => {
+                const hash = window.location.hash.slice(1);
+                if (!hash) {
                     updateState({ currentView: 'home' });
                     return;
                 }
-                
-                const view = pathSegments[0];
 
-                switch (view) {
+                // Split the hash and decode the title
+                const [view, type, id, ...titleParts] = hash.split('/');
+                const title = decodeURIComponent(titleParts.join('/'));
+                
+                switch(view) {
                     case 'content':
-                        if (pathSegments.length >= 4) {
-                            const [view, type, category, title] = pathSegments;
-                            const decodedTitle = decodeURIComponent(title).replace(/-/g, ' ');
-                            updateState({
-                                currentPage: 1,
-                                currentView: 'list',
-                                listParams: { fetchType: 'category', type: type, id: category, title: decodedTitle }
-                            });
-                        }
-                        break;
-                    case 'genre':
-                        if (pathSegments.length >= 4) {
-                            const [view, type, genreId, genreName] = pathSegments;
-                            const decodedGenreName = decodeURIComponent(genreName).replace(/-/g, ' ');
-                            updateState({
-                                currentPage: 1,
-                                currentView: 'list',
-                                listParams: { fetchType: 'genre', type: type, id: genreId, title: `Genre: ${decodedGenreName}` }
-                            });
-                        }
+                        updateState({
+                            currentView: 'list',
+                            listParams: { fetchType: 'category', type, id, title },
+                            currentPage: 1
+                        });
                         break;
                     case 'details':
-                        if (pathSegments.length >= 4) {
-                            const [view, type, id, title] = pathSegments;
-                            updateState({
-                                currentView: 'details',
-                                detailsParams: { type: type, id: id, title: decodeURIComponent(title) },
-                            });
-                        }
+                        updateState({
+                            currentView: 'details',
+                            detailsParams: { type, id, title }
+                        });
+                        break;
+                    case 'genre':
+                        updateState({
+                            currentView: 'list',
+                            listParams: { fetchType: 'genre', type, id, title: `Film Genre: ${title}` },
+                            currentPage: 1
+                        });
                         break;
                     case 'search':
-                        if (pathSegments.length >= 2) {
-                            const [view, query] = pathSegments;
-                            updateState({
-                                currentView: 'search',
-                                searchQuery: decodeURIComponent(query)
-                            });
-                        }
+                        updateState({
+                            currentView: 'search',
+                            searchQuery: type
+                        });
                         break;
                     default:
-                        // Jika path tidak dikenal, kembali ke home
-                        history.pushState(null, '', '/');
                         updateState({ currentView: 'home' });
                         break;
                 }
             };
-
-            // #############################################
-            // EVENT LISTENERS (PERBAIKAN)
-            // #############################################
-            homeLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                history.pushState(null, '', '/');
-                updateState({ currentView: 'home' });
-            });
             
+            homeLink.addEventListener('click', () => {
+                window.location.hash = '';
+            });
+
             searchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                const query = searchInput.value.trim();
+                const query = searchInput.value;
                 if (query) {
-                    const cleanQuery = query.replace(/ /g, '-');
-                    history.pushState(null, '', `/search/${encodeURIComponent(cleanQuery)}`);
-                    updateState({
-                        currentView: 'search',
-                        searchQuery: query
-                    });
+                    window.location.hash = `search/${encodeURIComponent(query)}`;
                 }
             });
 
@@ -560,13 +652,7 @@
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} Movies`;
-                    const cleanTitle = title.replace(/ /g, '-');
-                    history.pushState(null, '', `/content/${type}/${category}/${encodeURIComponent(cleanTitle)}`);
-                    updateState({
-                        currentPage: 1,
-                        currentView: 'list',
-                        listParams: { fetchType: 'category', type: type, id: category, title: title }
-                    });
+                    window.location.hash = `content/${type}/${category}/${encodeURIComponent(title)}`;
                 });
             });
 
@@ -574,19 +660,19 @@
                 button.addEventListener('click', (e) => {
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
-                    const title = `${e.target.textContent} TV Shows`;
-                    const cleanTitle = title.replace(/ /g, '-');
-                    history.pushState(null, '', `/content/${type}/${category}/${encodeURIComponent(cleanTitle)}`);
-                    updateState({
-                        currentPage: 1,
-                        currentView: 'list',
-                        listParams: { fetchType: 'category', type: type, id: category, title: title }
-                    });
+                    const title = `${e.target.textContent} Tv Shows`;
+                    window.location.hash = `content/${type}/${category}/${encodeURIComponent(title)}`;
                 });
             });
-
-            window.addEventListener('popstate', handleUrlChange);
-            handleUrlChange();
+            
+            // Initial load based on hash
+            if (!window.location.hash) {
+                window.location.hash = 'content/movie/now_playing/Now%20Playing%20Movies';
+            } else {
+                handleUrlHash();
+            }
+            
+            window.addEventListener('hashchange', handleUrlHash);
         });
     </script>
 </body>

@@ -49,9 +49,7 @@
 </head>
 <body class="bg-gray-900 text-gray-200">
     <!-- Header and Navigation -->
-    <!-- Add a 'sticky-header' class to make the header stick to the top on scroll -->
     <header class="bg-gray-800 shadow-md sticky-header">
-        <!-- New container to match the width of the main content -->
         <div class="container mx-auto px-4 max-w-7xl">
             <nav class="p-4 flex flex-col md:flex-row justify-between items-center">
                 <a href="#" id="home-link" class="flex items-center mb-4 md:mb-0">
@@ -106,7 +104,7 @@
         </div>
     </header>
 
-    <!-- Main Content -->
+    <!-- Main Content Area -->
     <main id="main-content" class="container mx-auto px-4 py-8 max-w-7xl">
         <!-- Main Banner Image -->
         <div id="hero-section" class="mb-8 rounded-lg overflow-hidden shadow-lg">
@@ -130,30 +128,38 @@
         <div id="content-area"></div>
     </main>
 
-    <!-- Modal for Streaming Player -->
-    <div id="streaming-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50">
-        <!-- Main modal content container -->
-        <div class="bg-gray-900 rounded-lg p-4 shadow-lg w-full max-w-7xl relative max-h-[90vh] overflow-y-auto">
-            <button id="close-modal-button" class="absolute top-2 right-2 text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
-            <h3 id="streaming-modal-title" class="text-xl md:text-2xl font-bold text-white mb-4 text-center"></h3>
+    <!-- Dedicated Streaming Page View -->
+    <!-- Added pt-20 to push content down and clear the sticky header -->
+    <div id="streaming-page-view" class="hidden w-full min-h-screen bg-gray-900 absolute top-0 left-0 z-40 overflow-y-auto p-4 pt-20">
+        <div class="container mx-auto px-4 py-8 max-w-7xl">
+            <!-- Back button for the streaming view -->
+            <button id="streaming-back-button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 mb-6 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Details
+            </button>
+
+            <!-- Streaming player and controls -->
+            <h3 id="streaming-page-title" class="text-xl md:text-2xl font-bold text-white mb-4 text-center"></h3>
             <div class="relative w-full h-0 pb-[56.25%] rounded-lg overflow-hidden mb-4">
-                <iframe id="streaming-player" class="absolute top-0 left-0 w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                <iframe id="streaming-player-inline" class="absolute top-0 left-0 w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             </div>
-            <div class="flex justify-center space-x-4">
-                <button id="stream-1-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full transition-colors duration-300 shadow-lg">Stream 1</button>
-                <button id="stream-2-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full transition-colors duration-300 shadow-lg">Stream 2</button>
+            <div class="flex justify-center space-x-4 mb-4">
+                <button id="stream-1-inline-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full transition-colors duration-300 shadow-lg">Stream 1</button>
+                <button id="stream-2-inline-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full transition-colors duration-300 shadow-lg">Stream 2</button>
             </div>
-            <!-- Notification messages for the user -->
             <div class="mt-4 text-center text-sm text-gray-400 space-y-2">
                 <p>Please wait for the player to display the film (maximum 1 minute).</p>
                 <p>Film availability depends on the third party.</p>
                 <p>Enjoy the show! Share this web link if you like it!</p>
             </div>
-            <!-- New section for "Some people like this" - now horizontally scrollable -->
+
+            <!-- "Some people like this" section within the streaming view -->
             <div class="mt-[0.7cm] text-center">
                 <h4 class="text-lg font-bold text-white mb-4">Some people like this</h4>
-                <!-- Use flexbox and overflow-x-auto for horizontal scrolling -->
-                <div id="modal-similar-container" class="flex overflow-x-auto gap-4 p-2">
+                <!-- Changed to grid layout for normal display -->
+                <div id="inline-similar-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     <!-- Film cards will be inserted here dynamically -->
                 </div>
             </div>
@@ -190,18 +196,21 @@
             const searchForm = document.getElementById('search-form');
             const searchInput = document.getElementById('search-input');
             const homeLink = document.getElementById('home-link');
-            const streamingModal = document.getElementById('streaming-modal');
-            const closeModalButton = document.getElementById('close-modal-button');
-            const streamingPlayer = document.getElementById('streaming-player');
-            const streamingModalTitle = document.getElementById('streaming-modal-title');
-            const stream1Button = document.getElementById('stream-1-button');
-            const stream2Button = document.getElementById('stream-2-button');
-            const modalSimilarContainer = document.getElementById('modal-similar-container');
+            
+            // New elements for the dedicated streaming view
+            const streamingPageView = document.getElementById('streaming-page-view');
+            const streamingPageTitle = document.getElementById('streaming-page-title');
+            const streamingPlayerInline = document.getElementById('streaming-player-inline');
+            const stream1InlineButton = document.getElementById('stream-1-inline-button');
+            const stream2InlineButton = document.getElementById('stream-2-inline-button');
+            const inlineSimilarContainer = document.getElementById('inline-similar-container');
+            const streamingBackButton = document.getElementById('streaming-back-button');
+
 
             const state = {
                 currentPage: 1,
                 renderedItemIds: new Set(),
-                currentView: 'home', // 'home', 'list', 'details', 'search'
+                currentView: 'home', // 'home', 'list', 'details', 'search', 'streaming'
                 listParams: null, // { fetchType, type, id, title }
                 detailsParams: null, // { type, id, title }
                 searchQuery: null,
@@ -216,11 +225,15 @@
             };
 
             const render = () => {
+                // Sembunyikan tampilan halaman streaming terlebih dahulu
+                streamingPageView.classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden'); // Pastikan main content selalu terlihat
+
+                // Sembunyikan elemen-elemen utama di dalam main-content secara default
                 heroSection.classList.add('hidden');
                 introSection.classList.add('hidden');
                 mainHeading.classList.add('hidden');
-                contentArea.innerHTML = '';
-                
+                contentArea.innerHTML = ''; // Clear contentArea at the start of render for safety
                 state.renderedItemIds.clear();
 
                 switch (state.currentView) {
@@ -234,15 +247,24 @@
                             </svg>
                             Welcome to Peliculas Pro: Your Ultimate Destination for the Best Free Movie Streaming
                         `;
+                        // contentArea will be empty for home, as dynamic content is not loaded initially
                         break;
                     case 'list':
+                        mainHeading.classList.remove('hidden'); // Ensure main heading is visible for lists
                         showDynamicContent(state.listParams.fetchType, state.listParams.type, state.listParams.id, state.listParams.title);
                         break;
                     case 'details':
+                        // mainHeading is intentionally hidden for details view to give more space for movie info
                         showDetails(state.detailsParams.type, state.detailsParams.id, state.detailsParams.title);
                         break;
                     case 'search':
+                        mainHeading.classList.remove('hidden'); // Ensure main heading is visible for search
                         showSearchResults(state.searchQuery);
+                        break;
+                    case 'streaming':
+                        document.getElementById('main-content').classList.add('hidden'); // Sembunyikan main content ketika streaming
+                        streamingPageView.classList.remove('hidden');
+                        // Konten untuk streamingPageView diisi saat tombol 'Stream Now' diklik
                         break;
                 }
             };
@@ -344,8 +366,8 @@
                     const posterUrl = posterPath ? `https://image.tmdb.org/t/p/w200/${posterPath}` : 'https://placehold.co/200x300?text=No+Image';
 
                     const card = document.createElement('div');
-                    // Add flex-shrink-0 to prevent cards from shrinking on small screens
-                    card.className = 'bg-gray-800 rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300 cursor-pointer w-[150px] flex-shrink-0';
+                    // Removed fixed width and flex-shrink-0 for grid layout
+                    card.className = 'bg-gray-800 rounded-lg shadow-md overflow-hidden transform hover:scale-105 transition-transform duration-300 cursor-pointer';
                     card.innerHTML = `
                         <img src="${posterUrl}" alt="Poster for ${title}" class="w-full h-auto object-cover">
                         <div class="p-2">
@@ -354,17 +376,19 @@
                     `;
                     card.addEventListener('click', () => {
                         window.location.hash = `details/${mediaType}/${item.id}/${encodeURIComponent(title)}`;
-                        streamingModal.classList.remove('flex');
-                        streamingModal.classList.add('hidden');
-                        streamingPlayer.src = '';
+                        // Ketika mengklik film serupa di tampilan streaming, kembali ke detail dan kemudian muat film itu
+                        // Ini akan memicu handleUrlHash dan kemudian showDetails untuk film baru
+                        streamingPlayerInline.src = ''; // Hentikan video saat ini
+                        updateState({ currentView: 'details', detailsParams: { type: mediaType, id: item.id, title: title } });
                     });
                     container.appendChild(card);
                 });
             };
 
             const showDynamicContent = async (fetchType, type, id, title) => {
+                contentArea.innerHTML = ''; // Clear content area before populating
                 mainHeading.innerHTML = `<h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">${title}</h2>`;
-                mainHeading.classList.remove('hidden');
+                mainHeading.classList.remove('hidden'); // Pastikan judul terlihat
 
                 const itemsContainer = document.createElement('div');
                 itemsContainer.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6';
@@ -406,8 +430,9 @@
             };
 
             const showSearchResults = async (query) => {
+                contentArea.innerHTML = ''; // Clear content area before populating
                 mainHeading.innerHTML = `<h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">Search Results for: "${decodeURIComponent(query)}"</h2>`;
-                mainHeading.classList.remove('hidden');
+                mainHeading.classList.remove('hidden'); // Pastikan judul terlihat
 
                 const searchResults = await fetchSearchResults(query);
 
@@ -422,6 +447,7 @@
             };
 
             const showDetails = async (type, id, titleFromHash) => {
+                contentArea.innerHTML = ''; // Clear content area before populating
                 const loadingSpinner = document.createElement('div');
                 loadingSpinner.className = 'flex justify-center items-center h-64';
                 loadingSpinner.innerHTML = `
@@ -430,7 +456,7 @@
                 contentArea.appendChild(loadingSpinner);
 
                 try {
-                    // Fetching all necessary data in parallel
+                    // Mengambil semua data yang diperlukan secara paralel
                     const [details, videosData, creditsData, reviewsData, similarData] = await Promise.all([
                         safeFetch(`/${type}/${id}`),
                         safeFetch(`/${type}/${id}/videos`),
@@ -602,43 +628,37 @@
                     }
 
                     // Menambahkan tombol "Stream Now" di bawah ulasan
-                    const streamingNowContainer = document.createElement('div');
-                    streamingNowContainer.className = 'mt-8 flex justify-center';
-                    streamingNowContainer.innerHTML = `
-                        <button id="streaming-now-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full transition-colors duration-300 shadow-lg transform hover:scale-105">
+                    const streamingNowButton = document.createElement('div'); // Mengubah menjadi div untuk menampung tombol
+                    streamingNowButton.className = 'mt-8 flex justify-center';
+                    streamingNowButton.innerHTML = `
+                        <button id="trigger-streaming-view-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-full transition-colors duration-300 shadow-lg transform hover:scale-105">
                             Stream Now
                         </button>
                     `;
-                    contentArea.appendChild(streamingNowContainer);
+                    contentArea.appendChild(streamingNowButton);
 
 
-                    // Add event listeners for genre links
+                    // Menambahkan event listener untuk link genre
                     document.querySelectorAll('.genre-link').forEach(link => {
                         link.addEventListener('click', (e) => {
                             e.preventDefault();
                             const genreId = e.target.dataset.genreId;
                             const genreName = e.target.dataset.genreName;
-                            // Update the URL hash to trigger the genre list view
+                            // Memperbarui hash URL untuk memicu tampilan daftar genre
                             window.location.hash = `content/${type}/genre/${genreId}/${encodeURIComponent(genreName)}`;
                         });
                     });
 
-                    // Add event listener for the new "Streaming Now" button
-                    const streamingNowButton = document.getElementById('streaming-now-button');
-                    streamingNowButton.addEventListener('click', async () => {
-                        streamingModalTitle.textContent = `Streaming: ${details.title || details.name}`;
-                        streamingModal.classList.remove('hidden');
-                        streamingModal.classList.add('flex');
-                        
-                        // Secara otomatis memuat stream pertama saat modal dibuka
-                        if (state.currentMediaId) {
-                            streamingPlayer.src = `https://vidsrc.me/embed/${state.currentMediaId}`;
-                        }
+                    // Menambahkan event listener untuk tombol "Stream Now" yang baru (untuk mengaktifkan tampilan streaming)
+                    document.getElementById('trigger-streaming-view-button').addEventListener('click', async () => {
+                        updateState({ currentView: 'streaming' });
+                        streamingPageTitle.textContent = `Streaming: ${details.title || details.name}`;
+                        streamingPlayerInline.src = `https://vidsrc.me/embed/${state.currentMediaId}`;
 
-                        // Memuat film-film serupa (genre romantis) di dalam modal
+                        // Memuat film-film serupa (genre romantis) di dalam bagian inline
                         const romanceMovies = await fetchByGenre('movie', 10749, 1);
                         if (romanceMovies && romanceMovies.length > 0) {
-                            renderSimpleCards(romanceMovies.slice(0, 12), modalSimilarContainer);
+                            renderSimpleCards(romanceMovies.slice(0, 12), inlineSimilarContainer);
                         }
                     });
 
@@ -741,37 +761,23 @@
                 window.location.hash = '';
             });
 
-            // Modal event listeners
-            closeModalButton.addEventListener('click', () => {
-                streamingModal.classList.remove('flex');
-                streamingModal.classList.add('hidden');
-                streamingPlayer.src = ''; // Stop the video
-                modalSimilarContainer.innerHTML = ''; // Clear the similar movies when closing the modal
-            });
-            
-            // Add a new event listener to close the modal when clicking outside the content.
-            // This checks if the click target is the modal itself.
-            streamingModal.addEventListener('click', (e) => {
-                if (e.target === streamingModal) {
-                    streamingModal.classList.remove('flex');
-                    streamingModal.classList.add('hidden');
-                    streamingPlayer.src = ''; // Stop the video
-                    modalSimilarContainer.innerHTML = ''; // Clear the similar movies when closing the modal
-                }
-            });
-
-            // Event listener untuk tombol "Stream 1" (vidsrc.me)
-            stream1Button.addEventListener('click', () => {
+            // Event listener untuk tombol stream inline (sekarang di dalam streaming-page-view)
+            stream1InlineButton.addEventListener('click', () => {
                 if (state.currentMediaId) {
-                    streamingPlayer.src = `https://vidsrc.me/embed/${state.currentMediaId}`;
+                    streamingPlayerInline.src = `https://vidsrc.me/embed/${state.currentMediaId}`;
                 }
             });
 
-            // Event listener untuk tombol "Stream 2" (vidsrc.to)
-            stream2Button.addEventListener('click', () => {
+            stream2InlineButton.addEventListener('click', () => {
                 if (state.currentMediaId && state.currentMediaType) {
-                    streamingPlayer.src = `https://vidsrc.to/embed/${state.currentMediaType}/${state.currentMediaId}`;
+                    streamingPlayerInline.src = `https://vidsrc.to/embed/${state.currentMediaType}/${state.currentMediaId}`;
                 }
+            });
+
+            // Tombol kembali untuk tampilan streaming
+            streamingBackButton.addEventListener('click', () => {
+                streamingPlayerInline.src = ''; // Hentikan video saat kembali
+                history.back(); // Kembali ke hash sebelumnya (halaman detail)
             });
         });
     </script>

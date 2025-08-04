@@ -377,36 +377,20 @@
                     backButton.innerHTML = '← Back';
                     backButton.addEventListener('click', () => history.back());
                     contentArea.appendChild(backButton);
-                    
+
                     const trailer = videosData.results.find(video => video.type === 'Trailer' && video.site === 'YouTube');
                     const director = creditsData.crew.find(member => member.job === 'Director');
                     const cast = creditsData.cast.slice(0, 5).map(actor => actor.name).join(', ');
                     const similarItems = similarData.results.slice(0, 6);
                     const reviews = reviewsData.results.slice(0, 5);
 
-                    const detailContainer = document.createElement('div');
-                    detailContainer.className = 'grid grid-cols-1 md:grid-cols-3 gap-8';
-
                     const posterPath = details.poster_path;
                     const posterUrl = posterPath ? `https://image.tmdb.org/t/p/w500/${posterPath}` : 'https://placehold.co/500x750?text=No+Image';
 
-                    detailContainer.innerHTML = `
-                        <div class="md:col-span-1">
-                            <img src="${posterUrl}" alt="Poster for ${details.title || details.name}" class="rounded-lg shadow-xl w-full">
-                        </div>
-                        <div class="md:col-span-2">
-                            <h1 class="text-5xl font-extrabold text-white mb-2">${details.title || details.name}</h1>
-                        </div>
-                    `;
+                    // Buat string HTML untuk judul asli secara kondisional
+                    const originalTitleHtml = (details.original_title && details.original_title !== (details.title || details.name)) ?
+                        `<h2 class="text-xl text-gray-400 mb-4 italic">${details.original_title}</h2>` : '';
 
-                    const originalTitle = details.original_title;
-                    if (originalTitle && originalTitle !== (details.title || details.name)) {
-                        const h2Element = document.createElement('h2');
-                        h2Element.className = 'text-xl text-gray-400 mb-4 italic';
-                        h2Element.textContent = originalTitle;
-                        detailContainer.querySelector('div.md:col-span-2').appendChild(h2Element);
-                    }
-                    
                     let genreLinks = '';
                     if (details.genres && details.genres.length > 0) {
                         genreLinks = details.genres.map(g => `<span class="genre-link cursor-pointer text-blue-400 hover:text-blue-200 hover:underline" data-genre-id="${g.id}" data-genre-name="${g.name}">${g.name}</span>` ).join(', ');
@@ -414,37 +398,45 @@
                         genreLinks = 'N/A';
                     }
 
-                    detailContainer.querySelector('div.md:col-span-2').innerHTML += `
-                        <p class="text-yellow-400 font-bold text-xl mb-4">Rating: ${details.vote_average.toFixed(1)}/10</p>
-                        <p class="text-gray-300 mb-4 text-justify">${details.overview || 'No overview available.'}</p>
-                        <div class="space-y-2 mb-6">
-                            <p class="text-gray-400"><span class="font-bold text-white">Genre:</span> ${genreLinks}</p>
-                            <p class="text-gray-400"><span class="font-bold text-white">Release Date:</span> ${details.release_date || details.first_air_date || 'N/A'}</p>
-                            <p class="text-gray-400"><span class="font-bold text-white">Director:</span> ${director ? director.name : 'N/A'}</p>
-                            <p class="text-gray-400"><span class="font-bold text-white">Main Cast:</span> ${cast || 'N/A'}</p>
-                        </div>
-
-                        ${trailer ? `
-                            <div class="mb-6">
-                                <h3 class="text-2xl font-bold text-white mb-3">Trailer</h3>
-                                <div class="aspect-w-16 aspect-h-9 overflow-hidden rounded-lg shadow-lg">
-                                    <iframe class="w-full h-full" src="https://www.youtube.com/embed/${trailer.key}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    // Gabungkan semua string HTML menjadi satu dan atur innerHTML sekali
+                    const detailHtml = `
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div class="md:col-span-1">
+                                <img src="${posterUrl}" alt="Poster for ${details.title || details.name}" class="rounded-lg shadow-xl w-full">
+                            </div>
+                            <div class="md:col-span-2">
+                                <h1 class="text-5xl font-extrabold text-white mb-2">${details.title || details.name}</h1>
+                                ${originalTitleHtml}
+                                <p class="text-yellow-400 font-bold text-xl mb-4">Rating: ${details.vote_average.toFixed(1)}/10</p>
+                                <p class="text-gray-300 mb-4 text-justify">${details.overview || 'No overview available.'}</p>
+                                <div class="space-y-2 mb-6">
+                                    <p class="text-gray-400"><span class="font-bold text-white">Genre:</span> ${genreLinks}</p>
+                                    <p class="text-gray-400"><span class="font-bold text-white">Release Date:</span> ${details.release_date || details.first_air_date || 'N/A'}</p>
+                                    <p class="text-gray-400"><span class="font-bold text-white">Director:</span> ${director ? director.name : 'N/A'}</p>
+                                    <p class="text-gray-400"><span class="font-bold text-white">Main Cast:</span> ${cast || 'N/A'}</p>
+                                </div>
+                                ${trailer ? `
+                                    <div class="mb-6">
+                                        <h3 class="text-2xl font-bold text-white mb-3">Trailer</h3>
+                                        <div class="aspect-w-16 aspect-h-9 overflow-hidden rounded-lg shadow-lg">
+                                            <iframe class="w-full h-full" src="https://www.youtube.com/embed/${trailer.key}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                                <div id="reviews-section">
+                                    <h3 class="text-2xl font-bold text-white mb-3">Reviews</h3>
+                                    ${reviews.length > 0 ? reviews.map(review => `
+                                        <div class="bg-gray-700 p-4 rounded-lg shadow-md mb-4">
+                                            <p class="font-bold text-white">${review.author}</p>
+                                            <p class="text-gray-400 text-sm italic">Rating: ${review.author_details.rating ? `${review.author_details.rating}/10` : 'N/A'}</p>
+                                            <p class="text-gray-300 mt-2">${review.content.substring(0, 300)}...</p>
+                                        </div>
+                                    `).join('') : '<p class="text-gray-500">No reviews available.</p>'}
                                 </div>
                             </div>
-                        ` : ''}
-
-                        <div id="reviews-section">
-                            <h3 class="text-2xl font-bold text-white mb-3">Reviews</h3>
-                            ${reviews.length > 0 ? reviews.map(review => `
-                                <div class="bg-gray-700 p-4 rounded-lg shadow-md mb-4">
-                                    <p class="font-bold text-white">${review.author}</p>
-                                    <p class="text-gray-400 text-sm italic">Rating: ${review.author_details.rating ? `${review.author_details.rating}/10` : 'N/A'}</p>
-                                    <p class="text-gray-300 mt-2">${review.content.substring(0, 300)}...</p>
-                                </div>
-                            `).join('') : '<p class="text-gray-500">No reviews available.</p>'}
                         </div>
                     `;
-                    contentArea.appendChild(detailContainer);
+                    contentArea.innerHTML += detailHtml;
 
                     // Similar movies section
                     if (similarItems.length > 0) {
@@ -467,7 +459,7 @@
                             updateState({
                                 currentPage: 1,
                                 currentView: 'list',
-                                listParams: { fetchType: 'genre', type: type, id: genreId, title: `Genre: ${genreName}` }
+                                listParams: { fetchType: 'genre', type: type, id: genreId, title: `Genre: ${decodedGenreName}` }
                             });
                         });
                     });

@@ -138,10 +138,10 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // #############################################
-            // PENYIMPANAN KONFIGURASI API KEY
+            // API KEY CONFIGURATION (UPDATED)
             // #############################################
-            // Daftar API key/proxy yang dapat digunakan. Aplikasi akan mencoba yang pertama,
-            // dan jika gagal, akan beralih ke yang berikutnya.
+            // A list of available API keys/proxies. The application will try the first one,
+            // and if it fails, it will fall back to the next one.
             const apiKeys = [
                 'tmdb-api-proxy.argoyuwono119.workers.dev',
                 'tmdb-api-proxy.musadekakhmad.workers.dev',
@@ -149,7 +149,7 @@
             ];
             
             // #############################################
-            // PENGELOLAAN STATE TERPUSAT (REFAKTOR SEBELUMNYA)
+            // CENTRALIZED STATE MANAGEMENT
             // #############################################
 
             const contentArea = document.getElementById('content-area');
@@ -165,7 +165,7 @@
                 renderedItemIds: new Set(),
                 currentView: 'home', // 'home', 'list', 'details', 'search'
                 listParams: null, // { fetchType, type, id, title }
-                detailsParams: null, // { type, id }
+                detailsParams: null, // { type, id, title }
                 searchQuery: null,
             };
 
@@ -198,7 +198,7 @@
                         showDynamicContent(state.listParams.fetchType, state.listParams.type, state.listParams.id, state.listParams.title);
                         break;
                     case 'details':
-                        showDetails(state.detailsParams.type, state.detailsParams.id);
+                        showDetails(state.detailsParams.type, state.detailsParams.id, state.detailsParams.title);
                         break;
                     case 'search':
                         showSearchResults(state.searchQuery);
@@ -207,9 +207,9 @@
             };
             
             // #############################################
-            // FUNGSI UTILITY & API CALLS (DIPERBARUI)
+            // UTILITY FUNCTIONS & API CALLS
             // #############################################
-            // Fungsi untuk melakukan fetch, dengan fallback jika API key gagal
+            // Function to perform a fetch with fallback if an API key fails
             const safeFetch = async (urlSuffix, options = {}) => {
                 for (const apiKey of apiKeys) {
                     const url = `https://${apiKey}${urlSuffix}`;
@@ -281,8 +281,9 @@
                         </div>
                     `;
 
+                    // Update the click handler to include the movie title in the hash
                     card.addEventListener('click', () => {
-                        window.location.hash = `details/${mediaType}/${item.id}`;
+                        window.location.hash = `details/${mediaType}/${item.id}/${encodeURIComponent(title)}`;
                     });
 
                     container.appendChild(card);
@@ -350,7 +351,7 @@
                 }
             };
 
-            const showDetails = async (type, id) => {
+            const showDetails = async (type, id, titleFromHash) => {
                 const loadingSpinner = document.createElement('div');
                 loadingSpinner.className = 'flex justify-center items-center h-64';
                 loadingSpinner.innerHTML = `
@@ -587,7 +588,7 @@
             };
             
             // #############################################
-            // PENGELOLAAN ROUTING & EVENT LISTENERS
+            // ROUTING & EVENT LISTENERS
             // #############################################
 
             const handleUrlHash = () => {
@@ -597,8 +598,9 @@
                     return;
                 }
 
-                const [view, type, id, ...rest] = hash.split('/');
-                const title = decodeURIComponent(rest.join(' '));
+                // Split the hash and decode the title
+                const [view, type, id, ...titleParts] = hash.split('/');
+                const title = decodeURIComponent(titleParts.join('/'));
                 
                 switch(view) {
                     case 'content':
@@ -611,7 +613,7 @@
                     case 'details':
                         updateState({
                             currentView: 'details',
-                            detailsParams: { type, id }
+                            detailsParams: { type, id, title }
                         });
                         break;
                     case 'genre':
@@ -663,6 +665,7 @@
                 });
             });
             
+            // Initial load based on hash
             if (!window.location.hash) {
                 window.location.hash = 'content/movie/now_playing/Now%20Playing%20Movies';
             } else {

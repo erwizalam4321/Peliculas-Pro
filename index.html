@@ -54,7 +54,7 @@
         <!-- New container to match the width of the main content -->
         <div class="container mx-auto px-4 max-w-7xl">
             <nav class="p-4 flex flex-col md:flex-row justify-between items-center">
-                <a href="#" id="home-link" class="flex items-center mb-4 md:mb-0">
+                <a href="/" id="home-link" class="flex items-center mb-4 md:mb-0">
                     <!-- Movie Icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400 mr-3" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M18 3H6c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 5h12v14H6V5zm10 12h-2v-2h2v2zM8 7h2v2H8V7zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2z"/>
@@ -63,7 +63,7 @@
                 </a>
                 <!-- Navigation links, dropdowns, and search bar -->
                 <div class="flex items-center space-x-4">
-                    <a href="#" class="text-white hover:text-red-500 hover:font-bold transition-colors duration-300">Home</a>
+                    <a href="/" class="text-white hover:text-red-500 hover:font-bold transition-colors duration-300">Home</a>
                     <div class="relative group">
                         <button id="movies-dropdown-button" class="text-white hover:text-blue-500 hover:font-bold transition-colors duration-300 flex items-center">
                             Movies
@@ -138,10 +138,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // #############################################
-            // API KEY CONFIGURATION (UPDATED)
+            // API KEY CONFIGURATION
             // #############################################
-            // A list of available API keys/proxies. The application will try the first one,
-            // and if it fails, it will fall back to the next one.
             const apiKeys = [
                 'tmdb-api-proxy.argoyuwono119.workers.dev',
                 'tmdb-api-proxy.musadekakhmad.workers.dev',
@@ -151,7 +149,7 @@
             // #############################################
             // CENTRALIZED STATE MANAGEMENT
             // #############################################
-
+            // Menggunakan state untuk melacak status aplikasi
             const contentArea = document.getElementById('content-area');
             const heroSection = document.getElementById('hero-section');
             const introSection = document.getElementById('intro-section');
@@ -164,11 +162,12 @@
                 currentPage: 1,
                 renderedItemIds: new Set(),
                 currentView: 'home', // 'home', 'list', 'details', 'search'
-                listParams: null, // { fetchType, type, id, title }
-                detailsParams: null, // { type, id, title }
+                listParams: null,
+                detailsParams: null,
                 searchQuery: null,
             };
 
+            // Fungsi untuk memperbarui state dan me-render ulang UI
             const updateState = (newState) => {
                 Object.assign(state, newState);
                 render();
@@ -209,7 +208,7 @@
             // #############################################
             // UTILITY FUNCTIONS & API CALLS
             // #############################################
-            // Function to perform a fetch with fallback if an API key fails
+            // Fungsi untuk melakukan fetch dengan fallback jika satu API key gagal
             const safeFetch = async (urlSuffix, options = {}) => {
                 for (const apiKey of apiKeys) {
                     const url = `https://${apiKey}${urlSuffix}`;
@@ -258,6 +257,7 @@
                 }
             };
 
+            // Fungsi untuk membuat dan me-render kartu konten
             const renderCards = (items, container) => {
                 items.forEach(item => {
                     const mediaType = item.media_type || (item.title ? 'movie' : 'tv');
@@ -281,9 +281,7 @@
                         </div>
                     `;
 
-                    // Update the click handler to use history.pushState for cleaner URLs
                     card.addEventListener('click', () => {
-                        // Ganti spasi dengan tanda hubung sebelum encoding
                         const cleanTitle = title.replace(/ /g, '-');
                         const newUrl = `/details/${mediaType}/${item.id}/${encodeURIComponent(cleanTitle)}`;
                         history.pushState(null, '', newUrl);
@@ -342,7 +340,7 @@
             };
 
             const showSearchResults = async (query) => {
-                const decodedQuery = decodeURIComponent(query).replace(/-/g, ' '); // Ganti kembali tanda hubung ke spasi
+                const decodedQuery = decodeURIComponent(query).replace(/-/g, ' ');
                 mainHeading.innerHTML = `<h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">Search Results for: "${decodedQuery}"</h2>`;
                 mainHeading.classList.remove('hidden');
 
@@ -394,9 +392,24 @@
                     const posterPath = details.poster_path;
                     const posterUrl = posterPath ? `https://image.tmdb.org/t/p/w500/${posterPath}` : 'https://placehold.co/500x750?text=No+Image';
 
-                    // Modifikasi: Selalu tampilkan judul asli jika tersedia
-                    const originalTitle = details.original_title;
+                    detailContainer.innerHTML = `
+                        <div class="md:col-span-1">
+                            <img src="${posterUrl}" alt="Poster for ${details.title || details.name}" class="rounded-lg shadow-xl w-full">
+                        </div>
+                        <div class="md:col-span-2">
+                            <h1 class="text-5xl font-extrabold text-white mb-2">${details.title || details.name}</h1>
+                        </div>
+                    `;
 
+                    // Logic asli untuk menampilkan H2 hanya jika judul berbeda
+                    const originalTitle = details.original_title;
+                    if (originalTitle && originalTitle !== (details.title || details.name)) {
+                        const h2Element = document.createElement('h2');
+                        h2Element.className = 'text-xl text-gray-400 mb-4 italic';
+                        h2Element.textContent = originalTitle;
+                        detailContainer.querySelector('div.md:col-span-2').appendChild(h2Element);
+                    }
+                    
                     let genreLinks = '';
                     if (details.genres && details.genres.length > 0) {
                         genreLinks = details.genres.map(g => `<span class="genre-link cursor-pointer text-blue-400 hover:text-blue-200 hover:underline" data-genre-id="${g.id}" data-genre-name="${g.name}">${g.name}</span>` ).join(', ');
@@ -404,41 +417,34 @@
                         genreLinks = 'N/A';
                     }
 
-                    detailContainer.innerHTML = `
-                        <div class="md:col-span-1">
-                            <img src="${posterUrl}" alt="Poster for ${details.title || details.name}" class="rounded-lg shadow-xl w-full">
+                    detailContainer.querySelector('div.md:col-span-2').innerHTML += `
+                        <p class="text-yellow-400 font-bold text-xl mb-4">Rating: ${details.vote_average.toFixed(1)}/10</p>
+                        <p class="text-gray-300 mb-4 text-justify">${details.overview || 'No overview available.'}</p>
+                        <div class="space-y-2 mb-6">
+                            <p class="text-gray-400"><span class="font-bold text-white">Genre:</span> ${genreLinks}</p>
+                            <p class="text-gray-400"><span class="font-bold text-white">Release Date:</span> ${details.release_date || details.first_air_date || 'N/A'}</p>
+                            <p class="text-gray-400"><span class="font-bold text-white">Director:</span> ${director ? director.name : 'N/A'}</p>
+                            <p class="text-gray-400"><span class="font-bold text-white">Main Cast:</span> ${cast || 'N/A'}</p>
                         </div>
-                        <div class="md:col-span-2">
-                            <h1 class="text-5xl font-extrabold text-white mb-2">${details.title || details.name}</h1>
-                            ${originalTitle ? `<h2 class="text-xl text-gray-400 mb-4 italic">${originalTitle}</h2>` : ''}
-                            <p class="text-yellow-400 font-bold text-xl mb-4">Rating: ${details.vote_average.toFixed(1)}/10</p>
-                            <p class="text-gray-300 mb-4 text-justify">${details.overview || 'No overview available.'}</p>
-                            <div class="space-y-2 mb-6">
-                                <p class="text-gray-400"><span class="font-bold text-white">Genre:</span> ${genreLinks}</p>
-                                <p class="text-gray-400"><span class="font-bold text-white">Release Date:</span> ${details.release_date || details.first_air_date || 'N/A'}</p>
-                                <p class="text-gray-400"><span class="font-bold text-white">Director:</span> ${director ? director.name : 'N/A'}</p>
-                                <p class="text-gray-400"><span class="font-bold text-white">Main Cast:</span> ${cast || 'N/A'}</p>
-                            </div>
 
-                            ${trailer ? `
-                                <div class="mb-6">
-                                    <h3 class="text-2xl font-bold text-white mb-3">Trailer</h3>
-                                    <div class="aspect-w-16 aspect-h-9 overflow-hidden rounded-lg shadow-lg">
-                                        <iframe class="w-full h-full" src="https://www.youtube.com/embed/${trailer.key}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                                    </div>
+                        ${trailer ? `
+                            <div class="mb-6">
+                                <h3 class="text-2xl font-bold text-white mb-3">Trailer</h3>
+                                <div class="aspect-w-16 aspect-h-9 overflow-hidden rounded-lg shadow-lg">
+                                    <iframe class="w-full h-full" src="https://www.youtube.com/embed/${trailer.key}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                                 </div>
-                            ` : ''}
-
-                            <div id="reviews-section">
-                                <h3 class="text-2xl font-bold text-white mb-3">Reviews</h3>
-                                ${reviews.length > 0 ? reviews.map(review => `
-                                    <div class="bg-gray-700 p-4 rounded-lg shadow-md mb-4">
-                                        <p class="font-bold text-white">${review.author}</p>
-                                        <p class="text-gray-400 text-sm italic">Rating: ${review.author_details.rating ? `${review.author_details.rating}/10` : 'N/A'}</p>
-                                        <p class="text-gray-300 mt-2">${review.content.substring(0, 300)}...</p>
-                                    </div>
-                                `).join('') : '<p class="text-gray-500">No reviews available.</p>'}
                             </div>
+                        ` : ''}
+
+                        <div id="reviews-section">
+                            <h3 class="text-2xl font-bold text-white mb-3">Reviews</h3>
+                            ${reviews.length > 0 ? reviews.map(review => `
+                                <div class="bg-gray-700 p-4 rounded-lg shadow-md mb-4">
+                                    <p class="font-bold text-white">${review.author}</p>
+                                    <p class="text-gray-400 text-sm italic">Rating: ${review.author_details.rating ? `${review.author_details.rating}/10` : 'N/A'}</p>
+                                    <p class="text-gray-300 mt-2">${review.content.substring(0, 300)}...</p>
+                                </div>
+                            `).join('') : '<p class="text-gray-500">No reviews available.</p>'}
                         </div>
                     `;
                     contentArea.appendChild(detailContainer);
@@ -460,7 +466,6 @@
                         link.addEventListener('click', (e) => {
                             const genreId = e.target.dataset.genreId;
                             const genreName = e.target.dataset.genreName;
-                            // Ganti spasi dengan tanda hubung sebelum encoding
                             const cleanGenreName = genreName.replace(/ /g, '-');
                             const newUrl = `/genre/${type}/${genreId}/${encodeURIComponent(cleanGenreName)}`;
                             history.pushState(null, '', newUrl);
@@ -479,14 +484,15 @@
             };
 
             // #############################################
-            // URL HANDLING (UPDATED)
+            // URL HANDLING (PERBAIKAN)
             // #############################################
-
+            
+            // Mengganti hashchange dengan popstate untuk menangani navigasi browser (back/forward)
             const handleUrlChange = () => {
                 const path = window.location.pathname;
                 const pathSegments = path.split('/').filter(segment => segment);
                 
-                // Root URL
+                // URL Root
                 if (pathSegments.length === 0) {
                     updateState({ currentView: 'home' });
                     return;
@@ -498,7 +504,6 @@
                     case 'content':
                         if (pathSegments.length >= 4) {
                             const [view, type, category, title] = pathSegments;
-                            // Ganti tanda hubung dengan spasi
                             const decodedTitle = decodeURIComponent(title).replace(/-/g, ' ');
                             updateState({
                                 currentPage: 1,
@@ -510,9 +515,8 @@
                     case 'genre':
                         if (pathSegments.length >= 4) {
                             const [view, type, genreId, genreName] = pathSegments;
-                             // Ganti tanda hubung dengan spasi
                             const decodedGenreName = decodeURIComponent(genreName).replace(/-/g, ' ');
-                             updateState({
+                            updateState({
                                 currentPage: 1,
                                 currentView: 'list',
                                 listParams: { fetchType: 'genre', type: type, id: genreId, title: `Genre: ${decodedGenreName}` }
@@ -522,7 +526,6 @@
                     case 'details':
                         if (pathSegments.length >= 4) {
                             const [view, type, id, title] = pathSegments;
-                             // Ganti tanda hubung dengan spasi
                             const decodedTitle = decodeURIComponent(title).replace(/-/g, ' ');
                             updateState({
                                 currentView: 'details',
@@ -533,7 +536,6 @@
                     case 'search':
                         if (pathSegments.length >= 2) {
                             const [view, query] = pathSegments;
-                            // Ganti tanda hubung dengan spasi
                             const decodedQuery = decodeURIComponent(query).replace(/-/g, ' ');
                             updateState({
                                 currentView: 'search',
@@ -542,15 +544,15 @@
                         }
                         break;
                     default:
-                        // Handle unknown paths, maybe redirect to home
+                        // Jika path tidak dikenal, kembali ke home
                         history.pushState(null, '', '/');
                         updateState({ currentView: 'home' });
                         break;
                 }
             };
-            
+
             // #############################################
-            // EVENT LISTENERS (UPDATED)
+            // EVENT LISTENERS (PERBAIKAN)
             // #############################################
 
             // Home link click listener
@@ -565,7 +567,6 @@
                 e.preventDefault();
                 const query = searchInput.value.trim();
                 if (query) {
-                    // Ganti spasi dengan tanda hubung sebelum encoding
                     const cleanQuery = query.replace(/ /g, '-');
                     const newUrl = `/search/${encodeURIComponent(cleanQuery)}`;
                     history.pushState(null, '', newUrl);
@@ -582,7 +583,6 @@
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} Movies`;
-                    // Ganti spasi dengan tanda hubung sebelum encoding
                     const cleanTitle = title.replace(/ /g, '-');
                     const newUrl = `/content/${type}/${category}/${encodeURIComponent(cleanTitle)}`;
                     history.pushState(null, '', newUrl);
@@ -600,7 +600,6 @@
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} TV Shows`;
-                     // Ganti spasi dengan tanda hubung sebelum encoding
                     const cleanTitle = title.replace(/ /g, '-');
                     const newUrl = `/content/${type}/${category}/${encodeURIComponent(cleanTitle)}`;
                     history.pushState(null, '', newUrl);
@@ -612,10 +611,10 @@
                 });
             });
 
-            // Listen for browser back/forward buttons
+            // Mendengarkan event popstate untuk tombol back/forward
             window.addEventListener('popstate', handleUrlChange);
 
-            // Initial page load based on URL path
+            // Pemuatan awal halaman berdasarkan URL
             handleUrlChange();
         });
     </script>

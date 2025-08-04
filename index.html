@@ -49,9 +49,9 @@
             </a>
             <!-- Navigation links and dropdowns -->
             <div class="flex items-center space-x-4">
-                <a href="https://peliculaspro.netlify.app/" class="text-white hover:text-yellow-400 transition-colors duration-300">Home</a>
+                <a href="https://peliculaspro.netlify.app/" class="text-white hover:text-red-500 hover:font-bold transition-colors duration-300">Home</a>
                 <div class="relative group">
-                    <button id="movies-dropdown-button" class="text-white hover:text-yellow-400 transition-colors duration-300 flex items-center">
+                    <button id="movies-dropdown-button" class="text-white hover:text-blue-500 hover:font-bold transition-colors duration-300 flex items-center">
                         Movies
                         <svg class="h-4 w-4 ml-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -263,7 +263,7 @@
                 // Display a "Go Back" button
                 const backButton = document.createElement('button');
                 backButton.className = 'bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 mb-6';
-                backButton.innerHTML = '← Kembali';
+                backButton.innerHTML = '← Back';
                 backButton.addEventListener('click', () => window.location.reload()); // Reloads the page to show the initial content
                 contentArea.appendChild(backButton);
 
@@ -296,7 +296,7 @@
                         ${originalTitle ? `<p class="text-xl text-gray-400 italic mb-6">(${originalTitle})</p>` : ''}
                         <p class="text-lg text-gray-400 mb-6">${details.tagline || ''}</p>
                         
-                        <h2 class="text-2xl font-bold text-yellow-400 mb-4">Detail Film</h2>
+                        <h2 class="text-2xl font-bold text-yellow-400 mb-4">Film Details</h2>
                         <div class="text-gray-300 space-y-4 mb-6">
                             <!-- Detail for Overview -->
                             <div class="flex flex-col">
@@ -416,7 +416,7 @@
                     const reviewsSection = document.createElement('div');
                     reviewsSection.className = 'mt-12';
                     reviewsSection.innerHTML = `
-                        <h4 class="text-3xl font-bold text-white mb-6">Ulasan Pengguna</h4>
+                        <h4 class="text-3xl font-bold text-white mb-6">User Reviews</h4>
                         <div id="user-reviews-container" class="space-y-6"></div>
                     `;
                     contentArea.appendChild(reviewsSection);
@@ -426,10 +426,10 @@
                         const reviewCard = document.createElement('div');
                         reviewCard.className = 'bg-gray-800 p-6 rounded-lg shadow-md';
                         reviewCard.innerHTML = `
-                            <p class="text-lg font-bold text-yellow-400">Oleh ${review.author}</p>
-                            <p class="text-sm text-gray-400 mt-1">Dibuat pada: ${new Date(review.created_at).toLocaleDateString()}</p>
+                            <p class="text-lg font-bold text-yellow-400">By ${review.author}</p>
+                            <p class="text-sm text-gray-400 mt-1">Created on: ${new Date(review.created_at).toLocaleDateString()}</p>
                             <p class="mt-4 text-justify line-clamp-3">${review.content}</p>
-                            <button class="read-more-button mt-2 text-blue-400 hover:underline text-sm" data-full-content="${encodeURIComponent(review.content)}">Baca Selengkapnya</button>
+                            <button class="read-more-button mt-2 text-blue-400 hover:underline text-sm" data-full-content="${encodeURIComponent(review.content)}">Read More</button>
                         `;
                         reviewsContainer.appendChild(reviewCard);
                     });
@@ -437,7 +437,7 @@
                     // Add event listeners for "Read More" buttons
                     document.querySelectorAll('.read-more-button').forEach(button => {
                         button.addEventListener('click', (e) => {
-                            const fullContent = decodeURIComponent(e.target.dataset.fullContent);
+                            const fullContent = decodeURIComponent(e.target.dataset.full-content);
                             // Using a custom modal for better UX instead of alert()
                             showModal(fullContent);
                         });
@@ -446,7 +446,7 @@
                 } else {
                     const noReviews = document.createElement('div');
                     noReviews.className = 'mt-12 text-center text-gray-500';
-                    noReviews.innerHTML = '<p>Belum ada ulasan pengguna untuk film ini.</p>';
+                    noReviews.innerHTML = '<p>No user reviews available for this film yet.</p>';
                     contentArea.appendChild(noReviews);
                 }
 
@@ -458,7 +458,7 @@
                     modalOverlay.innerHTML = `
                         <div class="bg-gray-800 p-8 rounded-lg shadow-xl max-w-2xl w-full mx-4">
                             <div class="flex justify-between items-center mb-4">
-                                <h4 class="text-2xl font-bold text-white">Ulasan Lengkap</h4>
+                                <h4 class="text-2xl font-bold text-white">Full Review</h4>
                                 <button id="close-modal" class="text-gray-400 hover:text-white">&times;</button>
                             </div>
                             <p class="text-gray-300 whitespace-pre-wrap">${content}</p>

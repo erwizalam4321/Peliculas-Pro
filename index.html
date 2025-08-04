@@ -11,30 +11,41 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        /* Custom CSS for rainbow text in the header */
+        .rainbow-text-header {
+            background-image: linear-gradient(to right, violet, indigo, blue, green, yellow, orange, red);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 2.25rem; /* text-3xl */
+            font-weight: 700; /* font-bold */
+        }
     </style>
+    <!-- Link to the custom style.css file -->
+    <link rel="stylesheet" href="style.css">
 
     <!-- SEO Meta Tags -->
     <meta name="description" content="Welcome to Peliculas Pro, the best free movie streaming platform online. Watch thousands of HD movies, from new releases to timeless classics, with no subscription required. Your ultimate source for unlimited entertainment.">
     <meta name="keywords" content="Peliculas Pro, free movies, watch movies online, HD streaming, latest movies, popular movies, no subscription, free entertainment, online cinema, movie streaming site">
-    <link rel="canonical" href="https://www.peliculaspro.com/">
+    <link rel="canonical" href="https://peliculaspro.netlify.app/">
 
     <!-- Open Graph Meta Tags for social media sharing -->
     <meta property="og:title" content="Peliculas Pro - Free HD Movie Streaming">
     <meta property="og:description" content="The best free movie streaming platform. Watch thousands of HD movies for free.">
     <meta property="og:image" content="https://live.staticflickr.com/65535/54698621370_1b976fbd76_b.jpg">
-    <meta property="og:url" content="https://www.peliculaspro.com/">
+    <meta property="og:url" content="https://peliculaspro.netlify.app/">
     <meta property="og:type" content="website">
 </head>
 <body class="bg-gray-900 text-gray-200">
-    <!-- Header and Navigation (simplified for this example) -->
+    <!-- Header and Navigation -->
     <header class="bg-gray-800 shadow-md">
         <nav class="container mx-auto p-4 flex justify-between items-center">
-            <a href="/" class="text-3xl font-bold text-blue-500 flex items-center">
+            <a href="/" class="flex items-center">
                 <!-- Movie Icon -->
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400 mr-3" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M18 3H6c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 5h12v14H6V5zm10 12h-2v-2h2v2zM8 7h2v2H8V7zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2z"/>
                 </svg>
-                Peliculas Pro
+                <span class="rainbow-text-header">Peliculas Pro</span>
             </a>
             <!-- Navigation links would go here -->
         </nav>

@@ -283,7 +283,9 @@
 
                     // Update the click handler to use history.pushState for cleaner URLs
                     card.addEventListener('click', () => {
-                        const newUrl = `/details/${mediaType}/${item.id}/${encodeURIComponent(title)}`;
+                        // Ganti spasi dengan tanda hubung sebelum encoding
+                        const cleanTitle = title.replace(/ /g, '-');
+                        const newUrl = `/details/${mediaType}/${item.id}/${encodeURIComponent(cleanTitle)}`;
                         history.pushState(null, '', newUrl);
                         updateState({
                             currentView: 'details',
@@ -340,10 +342,11 @@
             };
 
             const showSearchResults = async (query) => {
-                mainHeading.innerHTML = `<h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">Search Results for: "${decodeURIComponent(query)}"</h2>`;
+                const decodedQuery = decodeURIComponent(query).replace(/-/g, ' '); // Ganti kembali tanda hubung ke spasi
+                mainHeading.innerHTML = `<h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">Search Results for: "${decodedQuery}"</h2>`;
                 mainHeading.classList.remove('hidden');
 
-                const searchResults = await fetchSearchResults(query);
+                const searchResults = await fetchSearchResults(decodedQuery);
                 if (searchResults && searchResults.length > 0) {
                     const itemsContainer = document.createElement('div');
                     itemsContainer.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6';
@@ -456,7 +459,9 @@
                         link.addEventListener('click', (e) => {
                             const genreId = e.target.dataset.genreId;
                             const genreName = e.target.dataset.genreName;
-                            const newUrl = `/genre/${type}/${genreId}/${encodeURIComponent(genreName)}`;
+                            // Ganti spasi dengan tanda hubung sebelum encoding
+                            const cleanGenreName = genreName.replace(/ /g, '-');
+                            const newUrl = `/genre/${type}/${genreId}/${encodeURIComponent(cleanGenreName)}`;
                             history.pushState(null, '', newUrl);
                             updateState({
                                 currentPage: 1,
@@ -492,38 +497,46 @@
                     case 'content':
                         if (pathSegments.length >= 4) {
                             const [view, type, category, title] = pathSegments;
+                            // Ganti tanda hubung dengan spasi
+                            const decodedTitle = decodeURIComponent(title).replace(/-/g, ' ');
                             updateState({
                                 currentPage: 1,
                                 currentView: 'list',
-                                listParams: { fetchType: 'category', type: type, id: category, title: decodeURIComponent(title) }
+                                listParams: { fetchType: 'category', type: type, id: category, title: decodedTitle }
                             });
                         }
                         break;
                     case 'genre':
                         if (pathSegments.length >= 4) {
                             const [view, type, genreId, genreName] = pathSegments;
+                             // Ganti tanda hubung dengan spasi
+                            const decodedGenreName = decodeURIComponent(genreName).replace(/-/g, ' ');
                              updateState({
                                 currentPage: 1,
                                 currentView: 'list',
-                                listParams: { fetchType: 'genre', type: type, id: genreId, title: `Genre: ${decodeURIComponent(genreName)}` }
+                                listParams: { fetchType: 'genre', type: type, id: genreId, title: `Genre: ${decodedGenreName}` }
                             });
                         }
                         break;
                     case 'details':
                         if (pathSegments.length >= 4) {
                             const [view, type, id, title] = pathSegments;
+                             // Ganti tanda hubung dengan spasi
+                            const decodedTitle = decodeURIComponent(title).replace(/-/g, ' ');
                             updateState({
                                 currentView: 'details',
-                                detailsParams: { type: type, id: id, title: decodeURIComponent(title) },
+                                detailsParams: { type: type, id: id, title: decodedTitle },
                             });
                         }
                         break;
                     case 'search':
                         if (pathSegments.length >= 2) {
                             const [view, query] = pathSegments;
+                            // Ganti tanda hubung dengan spasi
+                            const decodedQuery = decodeURIComponent(query).replace(/-/g, ' ');
                             updateState({
                                 currentView: 'search',
-                                searchQuery: decodeURIComponent(query)
+                                searchQuery: decodedQuery
                             });
                         }
                         break;
@@ -551,7 +564,9 @@
                 e.preventDefault();
                 const query = searchInput.value.trim();
                 if (query) {
-                    const newUrl = `/search/${encodeURIComponent(query)}`;
+                    // Ganti spasi dengan tanda hubung sebelum encoding
+                    const cleanQuery = query.replace(/ /g, '-');
+                    const newUrl = `/search/${encodeURIComponent(cleanQuery)}`;
                     history.pushState(null, '', newUrl);
                     updateState({
                         currentView: 'search',
@@ -566,7 +581,9 @@
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} Movies`;
-                    const newUrl = `/content/${type}/${category}/${encodeURIComponent(title)}`;
+                    // Ganti spasi dengan tanda hubung sebelum encoding
+                    const cleanTitle = title.replace(/ /g, '-');
+                    const newUrl = `/content/${type}/${category}/${encodeURIComponent(cleanTitle)}`;
                     history.pushState(null, '', newUrl);
                     updateState({
                         currentPage: 1,
@@ -582,7 +599,9 @@
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} TV Shows`;
-                    const newUrl = `/content/${type}/${category}/${encodeURIComponent(title)}`;
+                     // Ganti spasi dengan tanda hubung sebelum encoding
+                    const cleanTitle = title.replace(/ /g, '-');
+                    const newUrl = `/content/${type}/${category}/${encodeURIComponent(cleanTitle)}`;
                     history.pushState(null, '', newUrl);
                     updateState({
                         currentPage: 1,

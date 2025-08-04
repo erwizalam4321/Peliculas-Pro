@@ -394,7 +394,8 @@
                     const posterPath = details.poster_path;
                     const posterUrl = posterPath ? `https://image.tmdb.org/t/p/w500/${posterPath}` : 'https://placehold.co/500x750?text=No+Image';
 
-                    const originalTitle = (details.title || details.name) !== details.original_title ? details.original_title : '';
+                    // Modifikasi: Selalu tampilkan judul asli jika tersedia
+                    const originalTitle = details.original_title;
 
                     let genreLinks = '';
                     if (details.genres && details.genres.length > 0) {

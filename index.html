@@ -54,7 +54,7 @@
         <!-- New container to match the width of the main content -->
         <div class="container mx-auto px-4 max-w-7xl">
             <nav class="p-4 flex flex-col md:flex-row justify-between items-center">
-                <a href="/" id="home-link" class="flex items-center mb-4 md:mb-0">
+                <a href="#" id="home-link" class="flex items-center mb-4 md:mb-0">
                     <!-- Movie Icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400 mr-3" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M18 3H6c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM6 5h12v14H6V5zm10 12h-2v-2h2v2zM8 7h2v2H8V7zm0 4h2v2H8v-2zm0 4h2v2H8v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2z"/>
@@ -63,7 +63,7 @@
                 </a>
                 <!-- Navigation links, dropdowns, and search bar -->
                 <div class="flex items-center space-x-4">
-                    <a href="/" class="text-white hover:text-red-500 hover:font-bold transition-colors duration-300">Home</a>
+                    <a href="#" class="text-white hover:text-red-500 hover:font-bold transition-colors duration-300">Home</a>
                     <div class="relative group">
                         <button id="movies-dropdown-button" class="text-white hover:text-blue-500 hover:font-bold transition-colors duration-300 flex items-center">
                             Movies
@@ -140,6 +140,8 @@
             // #############################################
             // API KEY CONFIGURATION
             // #############################################
+            // A list of available API keys/proxies. The application will try the first one,
+            // and if it fails, it will fall back to the next one.
             const apiKeys = [
                 'tmdb-api-proxy.argoyuwono119.workers.dev',
                 'tmdb-api-proxy.musadekakhmad.workers.dev',
@@ -149,7 +151,6 @@
             // #############################################
             // CENTRALIZED STATE MANAGEMENT
             // #############################################
-            // Menggunakan state untuk melacak status aplikasi
             const contentArea = document.getElementById('content-area');
             const heroSection = document.getElementById('hero-section');
             const introSection = document.getElementById('intro-section');
@@ -162,12 +163,11 @@
                 currentPage: 1,
                 renderedItemIds: new Set(),
                 currentView: 'home', // 'home', 'list', 'details', 'search'
-                listParams: null,
-                detailsParams: null,
+                listParams: null, // { fetchType, type, id, title }
+                detailsParams: null, // { type, id, title }
                 searchQuery: null,
             };
 
-            // Fungsi untuk memperbarui state dan me-render ulang UI
             const updateState = (newState) => {
                 Object.assign(state, newState);
                 render();
@@ -208,7 +208,7 @@
             // #############################################
             // UTILITY FUNCTIONS & API CALLS
             // #############################################
-            // Fungsi untuk melakukan fetch dengan fallback jika satu API key gagal
+            // Function to perform a fetch with fallback if an API key fails
             const safeFetch = async (urlSuffix, options = {}) => {
                 for (const apiKey of apiKeys) {
                     const url = `https://${apiKey}${urlSuffix}`;
@@ -257,7 +257,6 @@
                 }
             };
 
-            // Fungsi untuk membuat dan me-render kartu konten
             const renderCards = (items, container) => {
                 items.forEach(item => {
                     const mediaType = item.media_type || (item.title ? 'movie' : 'tv');
@@ -283,8 +282,7 @@
 
                     card.addEventListener('click', () => {
                         const cleanTitle = title.replace(/ /g, '-');
-                        const newUrl = `/details/${mediaType}/${item.id}/${encodeURIComponent(cleanTitle)}`;
-                        history.pushState(null, '', newUrl);
+                        history.pushState(null, '', `/details/${mediaType}/${item.id}/${encodeURIComponent(cleanTitle)}`);
                         updateState({
                             currentView: 'details',
                             detailsParams: { type: mediaType, id: item.id, title: title },
@@ -340,7 +338,7 @@
             };
 
             const showSearchResults = async (query) => {
-                const decodedQuery = decodeURIComponent(query).replace(/-/g, ' ');
+                const decodedQuery = decodeURIComponent(query);
                 mainHeading.innerHTML = `<h2 class="text-3xl md:text-4xl font-extrabold text-white mb-6">Search Results for: "${decodedQuery}"</h2>`;
                 mainHeading.classList.remove('hidden');
 
@@ -355,7 +353,7 @@
                 }
             };
             
-            const showDetails = async (type, id, titleFromHash) => {
+            const showDetails = async (type, id) => {
                 const loadingSpinner = document.createElement('div');
                 loadingSpinner.className = 'flex justify-center items-center h-64';
                 loadingSpinner.innerHTML = `
@@ -401,7 +399,6 @@
                         </div>
                     `;
 
-                    // Logic asli untuk menampilkan H2 hanya jika judul berbeda
                     const originalTitle = details.original_title;
                     if (originalTitle && originalTitle !== (details.title || details.name)) {
                         const h2Element = document.createElement('h2');
@@ -461,14 +458,12 @@
                         renderCards(similarItems, document.getElementById('similar-content-area'));
                     }
                     
-                    // Add event listeners for genre links
                     document.querySelectorAll('.genre-link').forEach(link => {
                         link.addEventListener('click', (e) => {
                             const genreId = e.target.dataset.genreId;
                             const genreName = e.target.dataset.genreName;
                             const cleanGenreName = genreName.replace(/ /g, '-');
-                            const newUrl = `/genre/${type}/${genreId}/${encodeURIComponent(cleanGenreName)}`;
-                            history.pushState(null, '', newUrl);
+                            history.pushState(null, '', `/genre/${type}/${genreId}/${encodeURIComponent(cleanGenreName)}`);
                             updateState({
                                 currentPage: 1,
                                 currentView: 'list',
@@ -486,13 +481,10 @@
             // #############################################
             // URL HANDLING (PERBAIKAN)
             // #############################################
-            
-            // Mengganti hashchange dengan popstate untuk menangani navigasi browser (back/forward)
             const handleUrlChange = () => {
                 const path = window.location.pathname;
                 const pathSegments = path.split('/').filter(segment => segment);
                 
-                // URL Root
                 if (pathSegments.length === 0) {
                     updateState({ currentView: 'home' });
                     return;
@@ -526,20 +518,18 @@
                     case 'details':
                         if (pathSegments.length >= 4) {
                             const [view, type, id, title] = pathSegments;
-                            const decodedTitle = decodeURIComponent(title).replace(/-/g, ' ');
                             updateState({
                                 currentView: 'details',
-                                detailsParams: { type: type, id: id, title: decodedTitle },
+                                detailsParams: { type: type, id: id, title: decodeURIComponent(title) },
                             });
                         }
                         break;
                     case 'search':
                         if (pathSegments.length >= 2) {
                             const [view, query] = pathSegments;
-                            const decodedQuery = decodeURIComponent(query).replace(/-/g, ' ');
                             updateState({
                                 currentView: 'search',
-                                searchQuery: decodedQuery
+                                searchQuery: decodeURIComponent(query)
                             });
                         }
                         break;
@@ -554,22 +544,18 @@
             // #############################################
             // EVENT LISTENERS (PERBAIKAN)
             // #############################################
-
-            // Home link click listener
             homeLink.addEventListener('click', (e) => {
                 e.preventDefault();
                 history.pushState(null, '', '/');
                 updateState({ currentView: 'home' });
             });
             
-            // Search form submission listener
             searchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const query = searchInput.value.trim();
                 if (query) {
                     const cleanQuery = query.replace(/ /g, '-');
-                    const newUrl = `/search/${encodeURIComponent(cleanQuery)}`;
-                    history.pushState(null, '', newUrl);
+                    history.pushState(null, '', `/search/${encodeURIComponent(cleanQuery)}`);
                     updateState({
                         currentView: 'search',
                         searchQuery: query
@@ -577,15 +563,13 @@
                 }
             });
 
-            // Movies dropdown menu click listeners
             document.querySelectorAll('#movies-dropdown-menu button').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} Movies`;
                     const cleanTitle = title.replace(/ /g, '-');
-                    const newUrl = `/content/${type}/${category}/${encodeURIComponent(cleanTitle)}`;
-                    history.pushState(null, '', newUrl);
+                    history.pushState(null, '', `/content/${type}/${category}/${encodeURIComponent(cleanTitle)}`);
                     updateState({
                         currentPage: 1,
                         currentView: 'list',
@@ -594,15 +578,13 @@
                 });
             });
 
-            // TV Shows dropdown menu click listeners
             document.querySelectorAll('#tv-shows-dropdown-menu button').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} TV Shows`;
                     const cleanTitle = title.replace(/ /g, '-');
-                    const newUrl = `/content/${type}/${category}/${encodeURIComponent(cleanTitle)}`;
-                    history.pushState(null, '', newUrl);
+                    history.pushState(null, '', `/content/${type}/${category}/${encodeURIComponent(cleanTitle)}`);
                     updateState({
                         currentPage: 1,
                         currentView: 'list',
@@ -611,10 +593,7 @@
                 });
             });
 
-            // Mendengarkan event popstate untuk tombol back/forward
             window.addEventListener('popstate', handleUrlChange);
-
-            // Pemuatan awal halaman berdasarkan URL
             handleUrlChange();
         });
     </script>

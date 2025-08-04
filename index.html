@@ -203,8 +203,7 @@
                 const itemsContainer = document.createElement('div');
                 // The responsive grid classes: `grid-cols-2` for mobile, `sm:grid-cols-3` for small screens, and `lg:grid-cols-4` for large screens
                 itemsContainer.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6';
-                contentArea.appendChild(itemsContainer);
-
+                
                 // Fetch and render initial items
                 let initialItems;
                 if (fetchType === 'category') {
@@ -213,7 +212,8 @@
                     initialItems = await fetchByGenre(type, id, currentPage);
                 }
 
-                if (initialItems.length > 0) {
+                if (initialItems && initialItems.length > 0) {
+                    contentArea.appendChild(itemsContainer);
                     renderCards(initialItems, itemsContainer, type);
 
                     const loadMoreButton = document.createElement('button');
@@ -229,7 +229,7 @@
                             moreItems = await fetchByGenre(type, id, currentPage);
                         }
 
-                        if (moreItems.length > 0) {
+                        if (moreItems && moreItems.length > 0) {
                             renderCards(moreItems, itemsContainer, type);
                         } else {
                             loadMoreButton.textContent = 'No More Items';
@@ -402,7 +402,7 @@
                     link.addEventListener('click', (e) => {
                         const genreId = e.target.dataset.genreId;
                         const genreName = e.target.dataset.genreName;
-                        window.location.hash = `genre/${type}/${genreId}/${genreName}`;
+                        window.location.hash = `genre/${type}/${genreId}/${encodeURIComponent(genreName)}`;
                     });
                 });
 
@@ -503,7 +503,7 @@
             const handleUrlHash = () => {
                 const hash = window.location.hash.slice(1); // Remove the #
                 if (!hash) {
-                    // Show default view
+                    // Show default view, since there's no hash
                     heroSection.classList.remove('hidden');
                     introSection.classList.remove('hidden');
                     mainHeading.classList.remove('hidden');
@@ -518,8 +518,7 @@
                 }
 
                 const [view, type, id, ...rest] = hash.split('/');
-                // Use decodeURIComponent() to correctly parse the title
-                const title = decodeURIComponent(rest.join(' '));
+                const title = decodeURIComponent(rest.join(' ')); // Use decodeURIComponent to correctly parse the title
                 
                 if (view === 'content' && type && id) {
                     showDynamicContent('category', type, id, title);
@@ -541,7 +540,8 @@
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} Movies`;
-                    window.location.hash = `content/${type}/${category}/${title}`;
+                    // Encode the title before setting the hash
+                    window.location.hash = `content/${type}/${category}/${encodeURIComponent(title)}`;
                 });
             });
 
@@ -550,13 +550,14 @@
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} Tv Shows`;
-                    window.location.hash = `content/${type}/${category}/${title}`;
+                    // Encode the title before setting the hash
+                    window.location.hash = `content/${type}/${category}/${encodeURIComponent(title)}`;
                 });
             });
-
-            // Check if hash is empty on initial load, if so, set to Now Playing Movies
+            
+            // Check if hash is empty on initial load, if so, set to a default view
             if (!window.location.hash) {
-                window.location.hash = 'content/movie/now_playing/Now Playing Movies';
+                window.location.hash = 'content/movie/now_playing/Now%20Playing%20Movies';
             }
 
             // Initial call to handle the URL hash on page load

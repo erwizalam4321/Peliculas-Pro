@@ -133,8 +133,21 @@
                 }
             };
             
+            // Function to fetch content from TMDB API by genre
+            const fetchByGenre = async (type, genreId, page = 1) => {
+                const url = `https://${apiKey}/discover/${type}?with_genres=${genreId}&page=${page}`;
+                try {
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    return data.results;
+                } catch (error) {
+                    console.error('Error fetching data by genre:', error);
+                    return [];
+                }
+            };
+
             // Function to render movie/TV show cards
-            const renderCards = (items, container, type, pageType, pageTitle) => {
+            const renderCards = (items, container, type) => {
                 items.forEach(item => {
                     const title = item.title || item.name;
                     const posterPath = item.poster_path;
@@ -159,8 +172,8 @@
                 });
             };
 
-            // Function to handle showing the dynamic content list
-            const showDynamicContent = async (type, category, title) => {
+            // Function to handle showing the dynamic content list (for both category and genre)
+            const showDynamicContent = async (fetchType, type, id, title) => {
                 // Clear existing content and hide static sections
                 contentArea.innerHTML = '';
                 heroSection.classList.add('hidden');
@@ -170,7 +183,13 @@
                 let currentPage = 1;
                 const totalItemsToShow = 12;
 
-                const initialItems = await fetchContent(type, category, currentPage);
+                let initialItems;
+                if (fetchType === 'category') {
+                    initialItems = await fetchContent(type, id, currentPage);
+                } else if (fetchType === 'genre') {
+                    initialItems = await fetchByGenre(type, id, currentPage);
+                }
+
                 const itemsContainer = document.createElement('div');
                 itemsContainer.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6';
                 contentArea.appendChild(itemsContainer);
@@ -184,7 +203,13 @@
                     
                     loadMoreButton.addEventListener('click', async () => {
                         currentPage++;
-                        const moreItems = await fetchContent(type, category, currentPage);
+                        let moreItems;
+                        if (fetchType === 'category') {
+                            moreItems = await fetchContent(type, id, currentPage);
+                        } else if (fetchType === 'genre') {
+                            moreItems = await fetchByGenre(type, id, currentPage);
+                        }
+
                         if (moreItems.length > 0) {
                              renderCards(moreItems.slice(0, totalItemsToShow), itemsContainer, type);
                         } else {
@@ -225,6 +250,12 @@
                 const similarData = await similarResponse.json();
                 const similarItems = similarData.results.slice(0, 6); // Get only 6 similar titles
 
+                // Fetch user reviews
+                const reviewsUrl = `https://${apiKey}/${type}/${id}/reviews`;
+                const reviewsResponse = await fetch(reviewsUrl);
+                const reviewsData = await reviewsResponse.json();
+                const reviews = reviewsData.results.slice(0, 5); // Get first 5 reviews
+
                 // Clear existing content and hide main heading
                 contentArea.innerHTML = '';
                 mainHeading.classList.add('hidden');
@@ -232,7 +263,7 @@
                 // Display a "Go Back" button
                 const backButton = document.createElement('button');
                 backButton.className = 'bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 mb-6';
-                backButton.innerHTML = '← Go Back';
+                backButton.innerHTML = '← Kembali';
                 backButton.addEventListener('click', () => window.location.reload()); // Reloads the page to show the initial content
                 contentArea.appendChild(backButton);
 
@@ -247,81 +278,111 @@
                 // Check for original title if it's different from the main title
                 const originalTitle = (details.title || details.name) !== details.original_title ? details.original_title : '';
 
+                let genreLinks = '';
+                if (details.genres && details.genres.length > 0) {
+                    genreLinks = details.genres.map(g => 
+                        `<span class="genre-link cursor-pointer text-blue-400 hover:text-blue-200 hover:underline" data-genre-id="${g.id}" data-genre-name="${g.name}">${g.name}</span>`
+                    ).join(', ');
+                } else {
+                    genreLinks = 'N/A';
+                }
+
                 detailContainer.innerHTML = `
                     <div class="md:col-span-1">
                         <img src="${posterUrl}" alt="Poster for ${details.title || details.name}" class="rounded-lg shadow-xl w-full">
                     </div>
                     <div class="md:col-span-2">
                         <h1 class="text-5xl font-extrabold text-white mb-2">${details.title || details.name}</h1>
-                        ${originalTitle ? `<p class="text-xl text-gray-400 italic mb-2">(${originalTitle})</p>` : ''}
+                        ${originalTitle ? `<p class="text-xl text-gray-400 italic mb-6">(${originalTitle})</p>` : ''}
                         <p class="text-lg text-gray-400 mb-6">${details.tagline || ''}</p>
                         
                         <h2 class="text-2xl font-bold text-yellow-400 mb-4">Detail Film</h2>
-                        <div class="text-gray-300 space-y-3 mb-6">
-                            <p class="flex items-start text-justify">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-2 2a2 2 0 11-4 0 2 2 0 014 0zm-4 0v1.5c0 .65.34 1.27.94 1.62m4.12-1.62v1.5c0 .65-.34 1.27-.94 1.62M11 20h1.5a1.5 1.5 0 000-3H11V20z" />
-                                </svg>
-                                <strong>Overview:&nbsp;</strong>
-                            </p>
-                            <p class="text-justify pl-8">${details.overview || 'N/A'}</p>
+                        <div class="text-gray-300 space-y-4 mb-6">
+                            <!-- Detail for Overview -->
+                            <div class="flex flex-col">
+                                <p class="flex items-center mb-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-2 2a2 2 0 11-4 0 2 2 0 014 0zm-4 0v1.5c0 .65.34 1.27.94 1.62m4.12-1.62v1.5c0 .65-.34 1.27-.94 1.62M11 20h1.5a1.5 1.5 0 000-3H11V20z" />
+                                    </svg>
+                                    <strong class="font-bold text-white">Overview:</strong>
+                                </p>
+                                <p class="ml-8 text-gray-300 text-justify">${details.overview || 'N/A'}</p>
+                            </div>
 
-                            <p class="flex items-center">
+                            <!-- Detail for Release Date -->
+                            <div class="flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h.01M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
-                                <strong>Release Date:&nbsp;</strong>${details.release_date || details.first_air_date || 'N/A'}
-                            </p>
+                                <strong class="font-bold text-white">Release Date:</strong> <span class="ml-2">${details.release_date || details.first_air_date || 'N/A'}</span>
+                            </div>
 
-                            <p class="flex items-center">
+                            <!-- Detail for Rating -->
+                            <div class="flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-yellow-400 mr-2 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                                 </svg>
-                                <strong>Rating:&nbsp;</strong>${details.vote_average.toFixed(1)} / 10 (${details.vote_count} votes)
-                            </p>
+                                <strong class="font-bold text-white">Rating:</strong> <span class="ml-2">${details.vote_average.toFixed(1)} / 10 (${details.vote_count} votes)</span>
+                            </div>
 
-                            <p class="flex items-center">
+                            <!-- Detail for Genres -->
+                            <div class="flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h18M3 12h18M3 16h18M7 8v8M17 8v8" />
                                 </svg>
-                                <strong>Genres:&nbsp;</strong>${details.genres.map(g => g.name).join(', ') || 'N/A'}
-                            </p>
+                                <strong class="font-bold text-white">Genres:</strong> <span class="ml-2">${genreLinks}</span>
+                            </div>
 
-                            <p class="flex items-center">
+                            <!-- Detail for Director -->
+                            <div class="flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-pink-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10.5a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.5 12a4.5 4.5 0 00-9 0c0 2.485 1.563 4.536 3.75 5.584V21h1.5v-3.416c2.187-1.048 3.75-3.099 3.75-5.584z" />
                                 </svg>
-                                <strong>Director:&nbsp;</strong>${director ? director.name : 'N/A'}
-                            </p>
+                                <strong class="font-bold text-white">Director:</strong> <span class="ml-2">${director ? director.name : 'N/A'}</span>
+                            </div>
 
-                            <p class="flex items-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-cyan-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm0-4c-.552 0-1-.448-1-1s.448-1 1-1 1 .448 1 1-.448 1-1 1z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 17h-1.5a1.5 1.5 0 00-1.5 1.5V21H6v-2.5a1.5 1.5 0 00-1.5-1.5H3V6a3 3 0 013-3h12a3 3 0 013 3v11z" />
-                                </svg>
-                                <strong>Actors:&nbsp;</strong>
-                            </p>
-                            <p class="text-justify pl-8">${cast || 'N/A'}</p>
+                            <!-- Detail for Actors -->
+                            <div class="flex flex-col">
+                                <p class="flex items-center mb-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-cyan-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm0-4c-.552 0-1-.448-1-1s.448-1 1-1 1 .448 1 1-.448 1-1 1z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 17h-1.5a1.5 1.5 0 00-1.5 1.5V21H6v-2.5a1.5 1.5 0 00-1.5-1.5H3V6a3 3 0 013-3h12a3 3 0 013 3v11z" />
+                                    </svg>
+                                    <strong class="font-bold text-white">Actors:</strong>
+                                </p>
+                                <p class="ml-8 text-gray-300">${cast || 'N/A'}</p>
+                            </div>
 
-                            <p class="flex items-center">
+                            <!-- Detail for Original Language -->
+                            <div class="flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5.7M9.363 4.463l-2.079 1.77A2.99 2.99 0 006 8.322V15.5c0 1.577.828 3.015 2.188 3.82L10 21.5h4l1.812-2.18c1.36-.805 2.188-2.243 2.188-3.82V8.322a2.99 2.99 0 00-.784-2.137l-2.08-1.77M11.999 4h.001" />
                                 </svg>
-                                <strong>Original Language:&nbsp;</strong>${details.original_language.toUpperCase() || 'N/A'}
-                            </p>
+                                <strong class="font-bold text-white">Original Language:</strong> <span class="ml-2">${details.original_language.toUpperCase() || 'N/A'}</span>
+                            </div>
 
-                            <p class="flex items-center">
+                            <!-- Detail for Homepage -->
+                            <div class="flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-400 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172A2 2 0 0012 8V6a2 2 0 10-4 0v2m4 4v2m2 4h4a2 2 0 002-2v-6m-4-2a2 2 0 01-2-2V4a2 2 0 114 0v4m-6 4h4m-2 2v4a2 2 0 104 0v-4" />
                                 </svg>
-                                <strong>Homepage:&nbsp;</strong><a href="${details.homepage}" class="text-blue-400 hover:underline" target="_blank">${details.homepage || 'N/A'}</a>
-                            </p>
+                                <strong class="font-bold text-white">Homepage:</strong> <span class="ml-2"><a href="${details.homepage}" class="text-blue-400 hover:underline" target="_blank">${details.homepage || 'N/A'}</a></span>
+                            </div>
                         </div>
                     </div>
                 `;
                 
                 contentArea.appendChild(detailContainer);
+                
+                // Add event listeners to the genre links
+                document.querySelectorAll('.genre-link').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        const genreId = e.target.dataset.genreId;
+                        const genreName = e.target.dataset.genreName;
+                        showDynamicContent('genre', type, genreId, `Film Genre: ${genreName}`);
+                    });
+                });
 
                 // Trailer section
                 if (trailer) {
@@ -349,6 +410,71 @@
                     const similarContainer = document.getElementById('similar-movies-container');
                     renderCards(similarItems, similarContainer, type);
                 }
+
+                // User reviews section
+                if (reviews.length > 0) {
+                    const reviewsSection = document.createElement('div');
+                    reviewsSection.className = 'mt-12';
+                    reviewsSection.innerHTML = `
+                        <h4 class="text-3xl font-bold text-white mb-6">Ulasan Pengguna</h4>
+                        <div id="user-reviews-container" class="space-y-6"></div>
+                    `;
+                    contentArea.appendChild(reviewsSection);
+
+                    const reviewsContainer = document.getElementById('user-reviews-container');
+                    reviews.forEach(review => {
+                        const reviewCard = document.createElement('div');
+                        reviewCard.className = 'bg-gray-800 p-6 rounded-lg shadow-md';
+                        reviewCard.innerHTML = `
+                            <p class="text-lg font-bold text-yellow-400">Oleh ${review.author}</p>
+                            <p class="text-sm text-gray-400 mt-1">Dibuat pada: ${new Date(review.created_at).toLocaleDateString()}</p>
+                            <p class="mt-4 text-justify line-clamp-3">${review.content}</p>
+                            <button class="read-more-button mt-2 text-blue-400 hover:underline text-sm" data-full-content="${encodeURIComponent(review.content)}">Baca Selengkapnya</button>
+                        `;
+                        reviewsContainer.appendChild(reviewCard);
+                    });
+
+                    // Add event listeners for "Read More" buttons
+                    document.querySelectorAll('.read-more-button').forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            const fullContent = decodeURIComponent(e.target.dataset.fullContent);
+                            // Using a custom modal for better UX instead of alert()
+                            showModal(fullContent);
+                        });
+                    });
+
+                } else {
+                    const noReviews = document.createElement('div');
+                    noReviews.className = 'mt-12 text-center text-gray-500';
+                    noReviews.innerHTML = '<p>Belum ada ulasan pengguna untuk film ini.</p>';
+                    contentArea.appendChild(noReviews);
+                }
+
+                // Custom modal for displaying full reviews
+                const showModal = (content) => {
+                    const modalOverlay = document.createElement('div');
+                    modalOverlay.id = 'modal-overlay';
+                    modalOverlay.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+                    modalOverlay.innerHTML = `
+                        <div class="bg-gray-800 p-8 rounded-lg shadow-xl max-w-2xl w-full mx-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="text-2xl font-bold text-white">Ulasan Lengkap</h4>
+                                <button id="close-modal" class="text-gray-400 hover:text-white">&times;</button>
+                            </div>
+                            <p class="text-gray-300 whitespace-pre-wrap">${content}</p>
+                        </div>
+                    `;
+                    document.body.appendChild(modalOverlay);
+
+                    document.getElementById('close-modal').addEventListener('click', () => {
+                        modalOverlay.remove();
+                    });
+                    modalOverlay.addEventListener('click', (e) => {
+                        if (e.target.id === 'modal-overlay') {
+                            modalOverlay.remove();
+                        }
+                    });
+                };
             };
             
             // Event listeners for dropdown buttons
@@ -357,7 +483,7 @@
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} Movies`;
-                    showDynamicContent(type, category, title);
+                    showDynamicContent('category', type, category, title);
                 });
             });
 
@@ -366,7 +492,7 @@
                     const type = e.target.dataset.type;
                     const category = e.target.dataset.category;
                     const title = `${e.target.textContent} Tv Shows`;
-                    showDynamicContent(type, category, title);
+                    showDynamicContent('category', type, category, title);
                 });
             });
         });
